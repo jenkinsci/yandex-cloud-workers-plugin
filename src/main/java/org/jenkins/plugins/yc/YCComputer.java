@@ -3,7 +3,6 @@ package org.jenkins.plugins.yc;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import hudson.model.Node;
 import hudson.slaves.SlaveComputer;
-import org.jenkins.plugins.yc.Dto.GetInstanceResponse;
 import org.jenkins.plugins.yc.util.TimeUtils;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;

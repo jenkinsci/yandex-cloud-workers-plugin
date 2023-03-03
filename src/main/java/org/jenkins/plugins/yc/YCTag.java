@@ -3,7 +3,6 @@ package org.jenkins.plugins.yc;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
-import org.jenkins.plugins.yc.Dto.Tag;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.util.LinkedList;
@@ -24,11 +23,11 @@ public class YCTag extends AbstractDescribableImpl<YCTag> {
         this.value = value;
     }
 
-    /* Constructor from Amazon Tag */
+    /* Constructor from Amazon Tag *//*
     public YCTag(Tag t) {
         name = t.getKey();
         value = t.getValue();
-    }
+    }*/
 
     public String getName() {
         return name;
@@ -72,7 +71,7 @@ public class YCTag extends AbstractDescribableImpl<YCTag> {
         }
     }
 
-    /* Helper method to convert lists of Amazon tags into internal format */
+    /* Helper method to convert lists of Amazon tags into internal format *//*
     public static List<YCTag> fromAmazonTags(List<Tag> amazonTags) {
         if (null == amazonTags) {
             return null;
@@ -84,5 +83,5 @@ public class YCTag extends AbstractDescribableImpl<YCTag> {
         }
 
         return result;
-    }
+    }*/
 }

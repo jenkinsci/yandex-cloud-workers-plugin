@@ -1,6 +1,5 @@
 package org.jenkins.plugins.yc;
 
-import org.jenkins.plugins.yc.Dto.GetInstanceResponse;
 import yandex.cloud.api.compute.v1.InstanceOuterClass;
 
 import java.util.Optional;
