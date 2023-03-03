@@ -1,0 +1,60 @@
+{
+  "folderId": "b1gjcigme8df0h9dl965",
+  "name": "test123",
+  "description": "testDescr",
+  "labels": null,
+  "zoneId": "ru-central1-b",
+  "platformId": "standard-v3",
+  "resourcesSpec": {
+    "memory": "1073741824",
+    "cores": "2",
+    "coreFraction": "20",
+    "gpus": null
+  },
+  "metadata": {
+    "user-data": "#cloud-config\nusers:\n  - name: user\n    ssh-authorized-keys:\n      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKrgSRQ4b/xvptqWr6ChUD+NbdUFviZwyFwv23udfzT th3ch3shir3cat@th3ch3shir3cat"
+  },
+  "metadataOptions": null,
+  "bootDiskSpec": {
+    "mode": "READ_WRITE",
+    "deviceName": null,
+    "autoDelete": false,
+    "diskSpec": {
+      "name": null,
+      "description": null,
+      "typeId": "network-hdd",
+      "size": "16106127360",
+      "blockSize": null,
+      "diskPlacementPolicy": null,
+      "imageId": "fd87ap2ld09bjiotu5v0",
+      "snapshotId": null
+    },
+    "diskId": null
+  },
+  "secondaryDiskSpecs": null,
+  "localDiskSpecs": null,
+  "filesystemSpecs": null,
+  "networkInterfaceSpecs": [
+    {
+      "subnetId": "e2l8m8rsiq7mbsusb9ps",
+      "primaryV4AddressSpec": {
+        "address": null,
+        "oneToOneNatSpec": {
+          "ipVersion": "IPV4",
+          "address": null,
+          "dnsRecordSpecs": null
+        },
+        "dnsRecordSpecs": null
+      },
+      "primaryV6AddressSpec": null,
+      "securityGroupIds": null
+    }
+  ],
+  "hostname": null,
+  "schedulingPolicy": {
+    "preemptible": true
+  },
+  "serviceAccountId": null,
+  "networkSettings": null,
+  "placementPolicy": null
+}

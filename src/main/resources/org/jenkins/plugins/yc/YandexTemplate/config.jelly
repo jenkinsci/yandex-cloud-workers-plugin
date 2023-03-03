@@ -1,0 +1,36 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:f="/lib/form" xmlns:ec="/lib/yc">
+  <ec:blockWrapper>
+    <f:entry title="${%Description}" field="description">
+      <f:textbox />
+    </f:entry>
+
+    <f:entry title="${%Labels}" field="labelString">
+      <f:textbox />
+    </f:entry>
+
+    <f:entry title="${%InitScript}" field="initScript">
+      <f:textarea/>
+    </f:entry>
+
+    <f:entry title="${%RemoteUser}" field="remoteAdmin">
+      <f:textbox/>
+    </f:entry>
+
+    <f:slave-mode name="mode" node="${instance}" />
+
+    <!--<f:advanced>
+      <f:entry title="Tags" description="YC Tag/Value Pairs">
+         <f:repeatable field="tags">
+            <st:include page="config.jelly" class="${descriptor.clazz}" />
+         </f:repeatable>
+      </f:entry>
+    </f:advanced>-->
+
+    <f:entry title="">
+      <div align="right">
+        <f:repeatableDeleteButton />
+      </div>
+    </f:entry>
+  </ec:blockWrapper>
+</j:jelly>
