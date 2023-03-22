@@ -164,7 +164,7 @@ public class YCUnixComputerLauncher extends YCComputerLauncher{
                 LOGGER.log(Level.INFO, String.format("Authenticating as " + computer.getRemoteAdmin()));
                 try {
                     bootstrapConn = connectToSsh(computer, listener);
-                    isAuthenticated = bootstrapConn.authenticateWithPublicKey("test",
+                    isAuthenticated = bootstrapConn.authenticateWithPublicKey(computer.getRemoteAdmin(),
                             ycPrivateKey.getPrivateKey().toCharArray(),
                             "");
                 } catch (IOException e) {
