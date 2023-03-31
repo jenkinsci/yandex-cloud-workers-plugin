@@ -13,6 +13,14 @@
       <f:textarea/>
     </f:entry>
 
+    <f:entry title="${%IdleTerminationMinutes}" field="idleTerminationMinutes">
+      <f:textbox/>
+    </f:entry>
+
+    <f:entry title="${%StopOnTerminate}" field="stopOnTerminate">
+      <f:booleanRadio/>
+    </f:entry>
+
     <f:entry title="${%RemoteUser}" field="remoteAdmin">
       <f:textbox/>
     </f:entry>

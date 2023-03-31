@@ -8,8 +8,6 @@ import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import yandex.cloud.api.compute.v1.InstanceOuterClass;
 
-import java.io.IOException;
-
 public class YCComputer extends SlaveComputer {
 
     /**
@@ -67,7 +65,7 @@ public class YCComputer extends SlaveComputer {
      * When the slave is deleted, terminate the instance.
      */
     @Override
-    public HttpResponse doDoDelete() throws IOException {
+    public HttpResponse doDoDelete() {
         checkPermission(DELETE);
         YCAbstractSlave node = getNode();
         if (node != null)

@@ -40,12 +40,13 @@ import static org.jenkins.plugins.yc.AbstractCloud.DescriptorImpl.getCredentials
 public abstract class AbstractCloud extends Cloud {
 
     private static final Logger LOGGER = Logger.getLogger(AbstractCloud.class.getName());
+    private static final long VM_WAITER = 100000;
 
     private final List<? extends YandexTemplate> templates;
 
     public final String groupId;
 
-    private final transient ReentrantLock slaveCountingLock = new ReentrantLock();
+    private transient ReentrantLock slaveCountingLock = new ReentrantLock();
 
     public final String credentialsId;
     public final String folderId;
@@ -129,6 +130,7 @@ public abstract class AbstractCloud extends Cloud {
     }
 
     protected Object readResolve() {
+        this.slaveCountingLock = new ReentrantLock();
         for (YandexTemplate t : templates)
             t.parent = this;
         return this;
@@ -224,7 +226,7 @@ public abstract class AbstractCloud extends Cloud {
 
                     public Node call() throws Exception {
                         while (true) {
-                            Thread.sleep(100000);
+                            Thread.sleep(VM_WAITER);
                             String instanceId = slave.getInstanceId();
                             InstanceOuterClass.Instance instance = Api.getInstanceResponse(instanceId, slave.getCloud());
                             if (instance == null) {
@@ -245,7 +247,7 @@ public abstract class AbstractCloud extends Cloud {
                                 return slave;
                             }
 
-                            if (!state.equals("BUILD")) {
+                            if (!state.equals("PROVISIONING")) {
                                 if (retryCount >= DESCRIBE_LIMIT) {
                                     LOGGER.log(Level.WARNING, "Instance {0} did not move to running after 1 attempts, terminating provisioning",
                                             new Object[]{instanceId/*, retryCount*/});

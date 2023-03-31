@@ -22,11 +22,13 @@ import yandex.cloud.api.compute.v1.instancegroup.InstanceGroupOuterClass;
 import yandex.cloud.api.operation.OperationOuterClass;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -181,6 +183,7 @@ public class YandexTemplate implements Describable<YandexTemplate> {
                 .withLabelString(labels)
                 .withInitScript(initScript)
                 .withRemoteAdmin(remoteAdmin)
+                .withLaunchTimeout(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
                 .withNodeProperties(nodeProperties.toList())
                 .build();
         return YCAgentFactory.getInstance().createOnDemandAgent(config);

@@ -59,7 +59,7 @@ public abstract class YCAbstractSlave extends Slave {
 
     public final String templateDescription;
 
-    public final boolean stopOnTerminate;
+    public boolean stopOnTerminate;
     public final String idleTerminationMinutes;
 
     public boolean isConnected = false;
@@ -84,13 +84,13 @@ public abstract class YCAbstractSlave extends Slave {
     protected static final long MIN_FETCH_TIME = Long.getLong("hudson.plugins.ec2.EC2AbstractSlave.MIN_FETCH_TIME",
             TimeUnit.SECONDS.toMillis(20));
 
-    protected final int launchTimeout;
+    protected final long launchTimeout;
 
     public YCAbstractSlave(String name, String instanceId, String templateDescription, String remoteFS, int numExecutors,
                            Mode mode, String labelString, ComputerLauncher launcher, RetentionStrategy<YCComputer> retentionStrategy,
                            String initScript, String tmpDir, List<? extends NodeProperty<?>> nodeProperties, String remoteAdmin,
                            boolean stopOnTerminate, String idleTerminationMinutes, List<YCTag> tags, String cloudName,
-                           int launchTimeout, int maxTotalUses, Tenancy tenancy)
+                           long launchTimeout, int maxTotalUses, Tenancy tenancy)
             throws FormException, IOException {
         super(name, remoteFS, launcher);
         setNumExecutors(numExecutors);

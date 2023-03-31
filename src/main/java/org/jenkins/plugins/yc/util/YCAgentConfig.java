@@ -20,7 +20,7 @@ public abstract class YCAgentConfig {
     final List<YCTag> tags;
     final String cloudName;
     final String idleTerminationMinutes;
-    final int launchTimeout;
+    final long launchTimeout;
 
     private YCAgentConfig(Builder<? extends Builder, ? extends YCAgentConfig> builder) {
         this.name = builder.name;
@@ -65,7 +65,7 @@ public abstract class YCAgentConfig {
         private String idleTerminationMinutes;
         private List<YCTag> tags;
         private String cloudName;
-        private int launchTimeout;
+        private long launchTimeout;
 
 
         public B withName(String name) {
@@ -117,7 +117,7 @@ public abstract class YCAgentConfig {
             return self();
         }
 
-        public B withLaunchTimeout(int launchTimeout) {
+        public B withLaunchTimeout(long launchTimeout) {
             this.launchTimeout = launchTimeout;
             return self();
         }

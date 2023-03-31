@@ -123,16 +123,6 @@ public class YandexRetentionStrategy extends RetentionStrategy<YCComputer> imple
             return 1;
         }
 
-        //If we have equal or less number of slaves than the template's minimum instance count, don't perform check.
-        YandexTemplate slaveTemplate = computer.getSlaveTemplate();
-        if (slaveTemplate != null) {
-            long numberOfCurrentInstancesForTemplate = MinimumInstanceChecker.countCurrentNumberOfAgents(slaveTemplate);
-            if (numberOfCurrentInstancesForTemplate > 0 && numberOfCurrentInstancesForTemplate <= slaveTemplate.getMinimumNumberOfInstances()) {
-                // TODO:Check if we're in an active time-range for keeping minimum number of instances
-                return 1;
-            }
-        }
-
         if (computer.isIdle() && !DISABLED) {
             final long uptime;
             String state;
@@ -151,22 +141,24 @@ public class YandexRetentionStrategy extends RetentionStrategy<YCComputer> imple
             if (computer.isOffline()) {
                 if (computer.isConnecting()) {
                     LOGGER.log(Level.INFO, "Computer {0} connecting and still offline, will check if the launch timeout has expired", computer.getInstanceId());
-                }
-                YCAbstractSlave node = computer.getNode();
-                if (Objects.isNull(node)) {
+
+                    YCAbstractSlave node = computer.getNode();
+                    if (Objects.isNull(node)) {
+                        return 1;
+                    }
+                    long launchTimeout = node.getLaunchTimeoutInMillis();
+                    if (launchTimeout > 0 && uptime > launchTimeout) {
+                        // Computer is offline and startup time has expired
+                        LOGGER.log(Level.INFO, "Startup timeout of " + computer.getName() + " after "
+                                + uptime +
+                                " milliseconds (timeout: " + launchTimeout + " milliseconds), instance status: " + state);
+                        node.launchTimeout();
+                    }
                     return 1;
                 }
-                long launchTimeout = node.getLaunchTimeoutInMillis();
-                if (launchTimeout > 0 && uptime > launchTimeout) {
-                    // Computer is offline and startup time has expired
-                    LOGGER.log(Level.INFO,"Startup timeout of " + computer.getName() + " after "
-                            + uptime +
-                            " milliseconds (timeout: " + launchTimeout + " milliseconds), instance status: " + state);
-                    node.launchTimeout();
+                else {
+                    LOGGER.log(Level.FINE, "Computer {0} offline but not connecting, will check if it should be terminated because of the idle time configured", computer.getInstanceId());
                 }
-                return 1;
-            } else {
-                LOGGER.log(Level.FINE, "Computer {0} offline but not connecting, will check if it should be terminated because of the idle time configured", computer.getInstanceId());
             }
             final long idleMilliseconds = this.clock.millis() - computer.getIdleStartMilliseconds();
             if (idleTerminationMinutes > 0) {
@@ -180,20 +172,19 @@ public class YandexRetentionStrategy extends RetentionStrategy<YCComputer> imple
                     if (slaveNode != null) {
                         slaveNode.idleTimeout();
                     }
-                } else {
-                    //TODO: think about that this is useful to huawei cloud
-                    final int oneHourSeconds = (int) TimeUnit.SECONDS.convert(1, TimeUnit.HOURS);
-                    final int freeSecondsLeft = oneHourSeconds
-                            - (int) (TimeUnit.SECONDS.convert(uptime, TimeUnit.MILLISECONDS) % oneHourSeconds);
-                    if (freeSecondsLeft <= TimeUnit.MINUTES.toSeconds(Math.abs(idleTerminationMinutes))) {
-                        LOGGER.log(Level.INFO, "Idle timeout of " + computer.getName() + " after "
-                                + TimeUnit.MILLISECONDS.toMinutes(idleMilliseconds) + " idle minutes, with "
-                                + TimeUnit.SECONDS.toMinutes(freeSecondsLeft)
-                                + " minutes remaining in billing period");
-                        YCAbstractSlave slaveNode = computer.getNode();
-                        if (slaveNode != null) {
-                            slaveNode.idleTimeout();
-                        }
+                }
+            }else {
+                final int oneHourSeconds = (int) TimeUnit.SECONDS.convert(1, TimeUnit.HOURS);
+                final int freeSecondsLeft = oneHourSeconds
+                        - (int) (TimeUnit.SECONDS.convert(uptime, TimeUnit.MILLISECONDS) % oneHourSeconds);
+                if (freeSecondsLeft <= TimeUnit.MINUTES.toSeconds(Math.abs(idleTerminationMinutes))) {
+                    LOGGER.log(Level.INFO, "Idle timeout of " + computer.getName() + " after "
+                            + TimeUnit.MILLISECONDS.toMinutes(idleMilliseconds) + " idle minutes, with "
+                            + TimeUnit.SECONDS.toMinutes(freeSecondsLeft)
+                            + " minutes remaining in billing period");
+                    YCAbstractSlave slaveNode = computer.getNode();
+                    if (slaveNode != null) {
+                        slaveNode.idleTimeout();
                     }
                 }
             }
