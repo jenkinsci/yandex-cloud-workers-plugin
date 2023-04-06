@@ -1,19 +1,21 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
-    <f:entry title="FolderId" field="folderId">
+    <f:entry title="${%FolderId}" field="folderId">
         <f:textbox />
     </f:entry>
-    <f:entry title="GroupId" field="groupId">
+
+    <f:entry title="${%InitVMTemplate}" field="initVMTemplate">
+        <f:textarea/>
+    </f:entry>
+
+    <f:entry title="${%Name}" field="name">
         <f:textbox/>
     </f:entry>
-    <f:entry title="Name" field="name">
-        <f:textbox/>
-    </f:entry>
-    <f:entry field="credentialsId" title="${%Credentials}"
+    <f:entry title="${%Credentials}" field="credentialsId"
              description="${%Credentials_DESC}">
         <c:select/>
     </f:entry>
-    <f:entry field="sshKeysCredentialsId" title="${%YC Key Pair's Private Key}">
+    <f:entry title="${%YC Key Pair's Private Key}" field="sshKeysCredentialsId">
         <c:select includeUser="false" checkMethod="post"/>
     </f:entry>
 </j:jelly>

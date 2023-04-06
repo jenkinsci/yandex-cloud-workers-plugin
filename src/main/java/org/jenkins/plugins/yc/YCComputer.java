@@ -30,11 +30,6 @@ public class YCComputer extends SlaveComputer {
         return node == null ? null : node.getInstanceId();
     }
 
-
-    public String getSpotInstanceRequestId() {
-        return "";
-    }
-
     public AbstractCloud getCloud() {
         YCAbstractSlave node = getNode();
         return node == null ? null : node.getCloud();

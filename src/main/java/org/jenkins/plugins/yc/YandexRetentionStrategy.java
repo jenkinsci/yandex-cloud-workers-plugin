@@ -135,7 +135,7 @@ public class YandexRetentionStrategy extends RetentionStrategy<YCComputer> imple
                 return 1;
             }
 
-            //on rare occasions, HWC may return fault instance which shows running in Huawei cloud console but can not be connected.
+            //on rare occasions, YC may return fault instance which shows running in Yandex cloud console but can not be connected.
             //need terminate such fault instance.
             //an instance may also fail running user data scripts and need to be cleaned up.
             if (computer.isOffline()) {

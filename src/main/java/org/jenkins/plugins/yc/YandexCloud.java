@@ -35,8 +35,10 @@ public class YandexCloud extends AbstractCloud {
 
     @DataBoundConstructor
     public YandexCloud(String name,
-                       List<? extends YandexTemplate> templates, String groupId, String credentialsId, String folderId, String sshKeysCredentialsId) {
-        super(name, templates, groupId, credentialsId, folderId, sshKeysCredentialsId);
+                       List<? extends YandexTemplate> templates, String credentialsId,
+                       String folderId, String sshKeysCredentialsId,
+                       String initVMTemplate) {
+        super(name, templates, credentialsId, folderId, sshKeysCredentialsId, initVMTemplate);
     }
 
     @Override

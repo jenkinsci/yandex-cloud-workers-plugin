@@ -58,8 +58,8 @@ public class YCOndemandSlave extends YCAbstractSlave {
         this(name, instanceId, templateDescription, remoteFS, numExecutors, labelString, launcher, mode, initScript, tmpDir, nodeProperties, remoteAdmin, stopOnTerminate, idleTerminationMinutes, tags, cloudName, launchTimeout, maxTotalUses, Tenancy.backwardsCompatible(useDedicatedTenancy));
     }
 
-    public YCOndemandSlave(String name, String instanceId, String description, String labelString, String cloudName, String idleTerminationMinutes, String initScript, String remoteAdmin, long launchTimeOut) throws FormException, IOException {
-        this(name, instanceId, description, "/tmp/hudson", 1, labelString, new YCUnixComputerLauncher(), Mode.NORMAL, initScript, "/tmp", Collections.emptyList(), remoteAdmin, null, false, idleTerminationMinutes, "Fake public", "Fake private", null, cloudName, false, launchTimeOut,  "PRIVATE_IP", -1);
+    public YCOndemandSlave(String name, String instanceId, String description, String labelString, String cloudName, String idleTerminationMinutes, String initScript, String remoteAdmin, long launchTimeOut, boolean stopOnTerminate) throws FormException, IOException {
+        this(name, instanceId, description, "/tmp/hudson", 1, labelString, new YCUnixComputerLauncher(), Mode.NORMAL, initScript, "/tmp", Collections.emptyList(), remoteAdmin, null, stopOnTerminate, idleTerminationMinutes, "Fake public", "Fake private", null, cloudName, false, launchTimeOut,  "PRIVATE_IP", -1);
     }
 
     @Override

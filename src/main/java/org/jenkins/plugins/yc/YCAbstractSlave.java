@@ -255,7 +255,7 @@ public abstract class YCAbstractSlave extends Slave {
         fetchLiveInstanceData(force);
         if (lastFetchInstance == null)
             return false;
-        if (lastFetchInstance.getStatus().name().equals("terminated"))
+        if (lastFetchInstance.getStatus().name().equals("STOPPED"))
             return false;
         return true;
     }
