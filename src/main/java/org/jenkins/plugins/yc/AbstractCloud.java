@@ -6,23 +6,33 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import hudson.model.Computer;
 import hudson.model.Descriptor;
+import hudson.model.ItemGroup;
 import hudson.model.Label;
 import hudson.model.Node;
 import hudson.security.ACL;
 import hudson.slaves.Cloud;
 import hudson.slaves.NodeProvisioner;
+import hudson.util.FormValidation;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl;
 import org.json.JSONObject;
+import org.kohsuke.stapler.AncestorInPath;
+import org.kohsuke.stapler.verb.POST;
 import yandex.cloud.api.compute.v1.InstanceOuterClass;
+import yandex.cloud.sdk.ChannelFactory;
 import yandex.cloud.sdk.ServiceFactory;
 import yandex.cloud.sdk.auth.Auth;
 import yandex.cloud.sdk.auth.jwt.ServiceAccountKey;
 import yandex.cloud.sdk.auth.provider.CredentialProvider;
 
+import javax.servlet.ServletException;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -130,6 +140,81 @@ public abstract class AbstractCloud extends Cloud {
             }
             throw new Exception("File not found");
         }
+
+        /**
+         * Tests the connection settings.
+         * <p>
+         * Overriding needs to {@code @RequirePOST}
+         *
+         * @param credentialsId
+         * @return the validation result
+         * @throws IOException
+         * @throws ServletException
+         */
+        @POST
+        protected FormValidation doTestConnection(@AncestorInPath ItemGroup context, String credentialsId) {
+            Jenkins.get().checkPermission(Jenkins.ADMINISTER);
+            try {
+                ServiceAccount serviceAccount = getCredentials(credentialsId);
+                if (serviceAccount == null) {
+                    throw new Exception("Failed find serviceAccount");
+                }
+                CredentialProvider provider = Auth.apiKeyBuilder()
+                        .serviceAccountKey(new ServiceAccountKey(serviceAccount.getId(),
+                                serviceAccount.getServiceAccountId(),
+                                serviceAccount.getCreatedAt(),
+                                serviceAccount.getKeyAlgorithm(),
+                                serviceAccount.getPublicKey(),
+                                serviceAccount.getPrivateKey()))
+                        .build();
+                if (provider.get().getToken() == null) {
+                    throw new Exception("Failed to login!");
+                }
+                return FormValidation.ok(Messages.YCloud_Success());
+            } catch (Exception e) {
+                return FormValidation.error(e.getMessage());
+            }
+
+        }
+
+        @POST
+        protected FormValidation doCheckSshKeysCredentialsId(@AncestorInPath ItemGroup context, String value) throws IOException {
+            Jenkins.get().checkPermission(Jenkins.ADMINISTER);
+            if (value == null || value.isEmpty()){
+                return FormValidation.error("No ssh credentials selected");
+            }
+            SSHUserPrivateKey sshCredential = getSshCredential(value);
+            String privateKey = "";
+            if (sshCredential != null) {
+                privateKey = sshCredential.getPrivateKey();
+            } else {
+                return FormValidation.error("Failed to find credential \"" + value + "\" in store.");
+            }
+            boolean hasStart = false, hasEnd = false;
+            BufferedReader br = new BufferedReader(new StringReader(privateKey));
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.equals("-----BEGIN RSA PRIVATE KEY-----") ||
+                        line.equals("-----BEGIN DSA PRIVATE KEY-----")||
+                        line.equals("-----BEGIN EC PRIVATE KEY-----")) {
+                    hasStart = true;
+                }
+                if (line.equals("-----END RSA PRIVATE KEY-----") ||
+                        line.equals("-----END DSA PRIVATE KEY-----")||
+                        line.equals("-----END EC PRIVATE KEY-----")) {
+                    hasEnd = true;
+                }
+                if(line.equals("-----BEGIN OPENSSH PRIVATE KEY-----")){
+                    return FormValidation.error("OPENSSH is a proprietary format. YC Integration requires the keys to be in PEM format");
+                }
+            }
+            if (!hasStart)
+                return FormValidation.error("This doesn't look like a private key at all");
+            if (!hasEnd)
+                return FormValidation
+                        .error("The private key is missing the trailing 'END RSA PRIVATE KEY' marker. Copy&paste error?");
+            return FormValidation.ok();
+        }
     }
 
     protected Object readResolve() {
@@ -204,6 +289,11 @@ public abstract class AbstractCloud extends Cloud {
         ServiceAccount serviceAccount = getCredentials(this.credentialsId);
         if(serviceAccount == null){
             throw new Exception("Failed find serviceAccount");
+        }
+        ManagedChannel channel = ManagedChannelBuilder.forTarget("iam.api.cloud.yandex.net:443").build();
+        channel.shutdown();
+        while(!channel.isShutdown()){
+            channel.awaitTermination(1, TimeUnit.SECONDS);
         }
         CredentialProvider provider = Auth.apiKeyBuilder()
                 .serviceAccountKey(new ServiceAccountKey(serviceAccount.getId(),

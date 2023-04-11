@@ -4,17 +4,12 @@ import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Restricted(NoExternalUse.class)
 public class ResettableCountDownLatch {
     private final int count;
     private final AtomicReference<CountDownLatch> latchHolder = new AtomicReference<>();
-
-    public ResettableCountDownLatch(int count) {
-        this(count, true);
-    }
 
     public ResettableCountDownLatch(int count, boolean setInitialState) {
         this.count = count;
@@ -31,14 +26,6 @@ public class ResettableCountDownLatch {
 
     public void reset() {
         latchHolder.set(new CountDownLatch(count));
-    }
-
-    public void await() throws InterruptedException {
-        latchHolder.get().await();
-    }
-
-    public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
-        return latchHolder.get().await(timeout, unit);
     }
 
     public long getCount() {

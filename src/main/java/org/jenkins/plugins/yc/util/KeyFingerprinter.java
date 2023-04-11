@@ -6,8 +6,6 @@ import org.bouncycastle.crypto.CryptoException;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.interfaces.DSAPublicKey;
 import java.security.interfaces.ECPublicKey;
@@ -25,109 +23,13 @@ public final class KeyFingerprinter {
      */
     public final static Base64.Encoder b64Encoder = Base64.getEncoder().withoutPadding();
 
-    /**
-     * Hexadecimal characters to translate to when converting from a byte[]
-     * array to a hex string.
-     */
-    private static final char[] HEX_CHARS = "0123456789abcdef".toCharArray();
-
     @SuppressWarnings("checkstyle:javadocmethod")
     private KeyFingerprinter() {
     }
 
-    /**
-     * Prior to version 6.7 used an a hex encoded MD5 of the
-     * serialized public key as a fingerprint.  This representation is
-     * still the one used by Triton and Manta as the key id.
-     *
-     * @param keyPair The KeyPair to calculate the fingerprint of
-     * @return The MD5 fingerprint (ex: {@code 9f:0b:50:ae:e3:da:f6:eb:b5:71:9a:69:ee:79:9e:c2})
-     */
-    public static String md5Fingerprint(final KeyPair keyPair) throws CryptoException {
+    public static String fingerPrint(final KeyPair keyPair) throws CryptoException {
         Objects.requireNonNull(keyPair);
-        MessageDigest md = null;
-        try {
-            md = MessageDigest.getInstance("MD5");
-        } catch (NoSuchAlgorithmException e) {
-            // Every implementation of the Java platform is required
-            // to support the following standard MessageDigest
-            // algorithms: MD5, SHA-1, SHA-256
-            throw new AssertionError(e);
-        }
-        byte[] encoded = SshEncoder.encode(keyPair.getPublic());
-        md.update(encoded);
-        byte[] digest = md.digest();
-        return colonify(digest);
-    }
-
-    public static String rsaFingerprint(final KeyPair keyPair) throws CryptoException {
-        Objects.requireNonNull(keyPair);
-        byte[] encoded = SshEncoder.encode(keyPair.getPublic());
-        return "ssh-rsa "+b64Encoder.encodeToString(encoded);
-    }
-
-    /**
-     * Verifies that the given fingerprint matches the key.  The
-     * fingerprint can be in any of the formats used by OpenSSH
-     * including the pre-6.7 format ({@code
-     * 9f:0b:50:ae:e3:da:f6:eb:b5:71:9a:69:ee:79:9e:c2}), or 6.8
-     * format prefixed with the algorithm name ({@code
-     * MD5:9f:0b:50:ae:e3:da:f6:eb:b5:71:9a:69:ee:79:9e:c2} or {@code
-     * SHA256:LP3pWCEhg6rdmE05GhUKbZ7uOZqsJd0sK0AR3sVoMq4}).
-     *
-     * @param keyPair The KeyPair to calculate the fingerprint of
-     * @param fingerprint The expected fingerprint
-     * @return true of the fingerprint matches
-     */
-
-    public static boolean verifyFingerprint(final KeyPair keyPair, final String fingerprint) throws CryptoException {
-        Objects.requireNonNull(keyPair);
-        Objects.requireNonNull(fingerprint);
-        final String md5Prefix = "MD5:";
-        final String sha256Prefix = "SHA256:";
-
-        if (fingerprint.startsWith(md5Prefix)) {
-            String expected = fingerprint.substring(md5Prefix.length());
-            return expected.equals(md5Fingerprint(keyPair));
-        } else if (fingerprint.startsWith(sha256Prefix)) {
-            String expected = fingerprint.substring(sha256Prefix.length());
-            return expected.equals(rsaFingerprint(keyPair));
-        } else {
-            return fingerprint.equals(md5Fingerprint(keyPair));
-        }
-    }
-
-    /**
-     * Given a byte array, space it out with colons and
-     * lowercase each character to match the OpenSSH format.
-     * Example output would be {@code
-     * 9f:0b:50:ae:e3:da:f6:eb:b5:71:9a:69:ee:79:9e:c2}
-     *
-     * @param bytes byte array to convert to hex string
-     * @return hex string with colons
-     */
-    @SuppressWarnings("MagicNumber")
-    static String colonify(final byte[] bytes) {
-        Objects.requireNonNull(bytes, "byte array is null");
-
-        if (bytes.length == 0) {
-            return "";
-        }
-
-        final char[] chars = new char[bytes.length * 3 - 1];
-
-        int charPos = 0;
-        for (int i = 0; i < bytes.length; i++) {
-            final int val = bytes[i] & 0xFF;
-            chars[charPos++] = HEX_CHARS[val >>> 4];
-            chars[charPos++] = HEX_CHARS[val & 0x0F];
-
-            if (charPos + 1 < chars.length) {
-                chars[charPos++] = ':';
-            }
-        }
-
-        return new String(chars);
+        return SshEncoder.encode(keyPair.getPublic());
     }
 
     /*
@@ -144,7 +46,7 @@ public final class KeyFingerprinter {
     @SuppressWarnings({"checkstyle:magicnumber", "checkstyle:javadocmethod", "checkstyle:javadoctype"})
     private static class SshEncoder {
 
-        public static byte[] encode(final PublicKey key) throws CryptoException {
+        public static String encode(final PublicKey key) throws CryptoException {
             if (key instanceof RSAPublicKey) {
                 return encode((RSAPublicKey)key);
             } else if (key instanceof DSAPublicKey) {
@@ -158,17 +60,17 @@ public final class KeyFingerprinter {
         }
 
         // sshpk parts: ['e', 'n']
-        public static byte[] encode(final RSAPublicKey key) {
+        public static String encode(final RSAPublicKey key) {
             ByteArrayOutputStream buf = new ByteArrayOutputStream();
             byte[] name = "ssh-rsa".getBytes(StandardCharsets.US_ASCII);
             writeArray(name, buf);
             writeArray(key.getPublicExponent().toByteArray(), buf);
             writeArray(key.getModulus().toByteArray(), buf);
-            return buf.toByteArray();
+            return "ssh-rsa "+b64Encoder.encodeToString(buf.toByteArray());
         }
 
         // sshpk: ['p', 'q', 'g', 'y']
-        public static byte[] encode(final DSAPublicKey key) {
+        public static String encode(final DSAPublicKey key) {
             ByteArrayOutputStream buf = new ByteArrayOutputStream();
             byte[] name = "ssh-dss".getBytes(StandardCharsets.US_ASCII);
             writeArray(name, buf);
@@ -176,7 +78,7 @@ public final class KeyFingerprinter {
             writeArray(key.getParams().getQ().toByteArray(), buf);
             writeArray(key.getParams().getG().toByteArray(), buf);
             writeArray(key.getY().toByteArray(), buf);
-            return buf.toByteArray();
+            return "ssh-dss "+b64Encoder.encodeToString(buf.toByteArray());
         }
 
         /*
@@ -198,7 +100,7 @@ public final class KeyFingerprinter {
          * These details are summarized by
          * https://security.stackexchange.com/a/129913
          */
-        public static byte[] encode(final ECPublicKey key) throws CryptoException {
+        public static String encode(final ECPublicKey key) throws CryptoException {
             ByteArrayOutputStream buf = new ByteArrayOutputStream();
 
             int bitLength = key.getW().getAffineX().bitLength();
@@ -228,7 +130,7 @@ public final class KeyFingerprinter {
             System.arraycopy(javaEncoding, javaEncoding.length - qLen, q, 0, qLen);
             writeArray(q, buf);
 
-            return buf.toByteArray();
+            return "ecdsa-sha2-" + curveName + " " +b64Encoder.encodeToString(buf.toByteArray());
         }
 
         /*

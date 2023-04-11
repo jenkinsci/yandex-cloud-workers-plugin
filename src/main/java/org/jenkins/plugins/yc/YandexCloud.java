@@ -11,6 +11,7 @@ import hudson.model.ItemGroup;
 import hudson.model.Label;
 import hudson.security.ACL;
 import hudson.slaves.NodeProvisioner;
+import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl;
@@ -18,7 +19,6 @@ import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.interceptor.RequirePOST;
-import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -84,35 +84,6 @@ public class YandexCloud extends AbstractCloud {
         return plannedNodes;
     }
 
-    public void provision(YandexTemplate t, int number) {
-        Jenkins jenkinsInstance = Jenkins.get();
-        if (jenkinsInstance.isQuietingDown()) {
-            LOGGER.log(Level.INFO, "Not provisioning nodes, Jenkins instance is quieting down");
-            return;
-        } else if (jenkinsInstance.isTerminating()) {
-            LOGGER.log(Level.INFO, "Not provisioning nodes, Jenkins instance is terminating");
-            return;
-        }
-        try {
-            LOGGER.log(Level.INFO, "{0}. Attempting to provision {1} slave(s)", new Object[]{t, number});
-            final List<YCAbstractSlave> slaves = getNewOrExistingAvailableSlave(t, number, false);
-
-            if (slaves == null || slaves.isEmpty()) {
-                LOGGER.warning("Can't raise nodes for " + t);
-                return;
-            }
-
-            attachSlavesToJenkins(jenkinsInstance, slaves, t);
-
-            LOGGER.log(Level.INFO, "{0}. Attempting provision finished", t);
-            LOGGER.log(Level.INFO, "We have now {0} computers, waiting for {1} more",
-                    new Object[]{Jenkins.get().getComputers().length, number});
-        } catch (Exception e) {
-            LOGGER.log(Level.WARNING, t + ". Exception during provisioning", e);
-        }
-
-    }
-
     private static void attachSlavesToJenkins(Jenkins jenkins, List<YCAbstractSlave> slaves, YandexTemplate t) throws IOException {
         for (final YCAbstractSlave slave : slaves) {
             if (slave == null) {
@@ -137,7 +108,7 @@ public class YandexCloud extends AbstractCloud {
             return "Yandex Cloud";
         }
 
-        @POST
+        @RequirePOST
         public ListBoxModel doFillSshKeysCredentialsIdItems(@AncestorInPath ItemGroup context, @QueryParameter String sshKeysCredentialsId) {
             Jenkins.get().checkPermission(Jenkins.ADMINISTER);
 
@@ -162,6 +133,16 @@ public class YandexCloud extends AbstractCloud {
                                     Collections.emptyList()));
         }
 
+
+        @RequirePOST
+        public FormValidation doTestConnection(@AncestorInPath ItemGroup context, @QueryParameter String credentialsId) {
+            return super.doTestConnection(context, credentialsId);
+        }
+
+        @RequirePOST
+        public FormValidation doCheckSshKeysCredentialsId(@AncestorInPath ItemGroup context, @QueryParameter String value) throws IOException {
+            return super.doCheckSshKeysCredentialsId(context, value);
+        }
     }
 
 }

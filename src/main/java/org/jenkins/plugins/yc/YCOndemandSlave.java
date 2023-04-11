@@ -32,10 +32,10 @@ public class YCOndemandSlave extends YCAbstractSlave {
                            String tmpDir, List<? extends NodeProperty<?>> nodeProperties, String remoteAdmin,
                            boolean stopOnTerminate, String idleTerminationMinutes,
                            List<YCTag> tags, String cloudName, long launchTimeout,
-                           int maxTotalUses, Tenancy tenancy)
+                           int maxTotalUses)
             throws FormException, IOException {
 
-        super(name, instanceId, templateDescription, remoteFS, numExecutors, mode, labelString, launcher, new YandexRetentionStrategy(idleTerminationMinutes), initScript, tmpDir, nodeProperties, remoteAdmin, stopOnTerminate, idleTerminationMinutes, tags, cloudName, launchTimeout, maxTotalUses, tenancy);
+        super(name, instanceId, templateDescription, remoteFS, numExecutors, mode, labelString, launcher, new YandexRetentionStrategy(idleTerminationMinutes), initScript, tmpDir, nodeProperties, remoteAdmin, stopOnTerminate, idleTerminationMinutes, tags, cloudName, launchTimeout, maxTotalUses);
     }
 
     /**
@@ -47,19 +47,18 @@ public class YCOndemandSlave extends YCAbstractSlave {
                            String remoteFS, int numExecutors, String labelString, ComputerLauncher launcher,
                            Mode mode, String initScript, String tmpDir,
                            List<? extends NodeProperty<?>> nodeProperties,
-                           String remoteAdmin, String jvmopts, boolean stopOnTerminate,
-                           String idleTerminationMinutes, String publicDNS, String privateDNS,
-                           List<YCTag> tags, String cloudName,
-                           boolean useDedicatedTenancy, long launchTimeout,
+                           String remoteAdmin, boolean stopOnTerminate,
+                           String idleTerminationMinutes,
+                           List<YCTag> tags, String cloudName, long launchTimeout,
                            String connectionStrategy,
                            int maxTotalUses)
             throws FormException, IOException {
 
-        this(name, instanceId, templateDescription, remoteFS, numExecutors, labelString, launcher, mode, initScript, tmpDir, nodeProperties, remoteAdmin, stopOnTerminate, idleTerminationMinutes, tags, cloudName, launchTimeout, maxTotalUses, Tenancy.backwardsCompatible(useDedicatedTenancy));
+        this(name, instanceId, templateDescription, remoteFS, numExecutors, labelString, launcher, mode, initScript, tmpDir, nodeProperties, remoteAdmin, stopOnTerminate, idleTerminationMinutes, tags, cloudName, launchTimeout, maxTotalUses);
     }
 
     public YCOndemandSlave(String name, String instanceId, String description, String labelString, String cloudName, String idleTerminationMinutes, String initScript, String remoteAdmin, long launchTimeOut, boolean stopOnTerminate) throws FormException, IOException {
-        this(name, instanceId, description, "/tmp/hudson", 1, labelString, new YCUnixComputerLauncher(), Mode.NORMAL, initScript, "/tmp", Collections.emptyList(), remoteAdmin, null, stopOnTerminate, idleTerminationMinutes, "Fake public", "Fake private", null, cloudName, false, launchTimeOut,  "PRIVATE_IP", -1);
+        this(name, instanceId, description, "/tmp/hudson", 1, labelString, new YCUnixComputerLauncher(), Mode.NORMAL, initScript, "/tmp", Collections.emptyList(), remoteAdmin, stopOnTerminate, idleTerminationMinutes, null, cloudName,  launchTimeOut,  "PRIVATE_IP", -1);
     }
 
     @Override

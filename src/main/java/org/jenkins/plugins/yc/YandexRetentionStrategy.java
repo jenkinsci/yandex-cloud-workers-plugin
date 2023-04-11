@@ -8,7 +8,6 @@ import hudson.model.Queue;
 import hudson.slaves.RetentionStrategy;
 import jenkins.model.Jenkins;
 import org.antlr.v4.runtime.misc.NotNull;
-import org.jenkins.plugins.yc.util.MinimumInstanceChecker;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.time.Clock;

@@ -15,6 +15,7 @@
              description="${%Credentials_DESC}">
         <c:select/>
     </f:entry>
+    <f:validateButton title="${%Test Connection}" progress="${%Testing...}" method="testConnection" with="credentialsId" />
     <f:entry title="${%YC Key Pair's Private Key}" field="sshKeysCredentialsId">
         <c:select includeUser="false" checkMethod="post"/>
     </f:entry>

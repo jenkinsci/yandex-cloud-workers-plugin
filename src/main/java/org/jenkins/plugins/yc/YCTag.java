@@ -5,8 +5,6 @@ import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Objects;
 
 public class YCTag extends AbstractDescribableImpl<YCTag> {

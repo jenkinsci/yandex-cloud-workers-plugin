@@ -278,20 +278,6 @@ public class YCUnixComputerLauncher extends YCComputerLauncher{
         return -1;
     }
 
-    private boolean checkAndInstallJava(Connection conn, String checkCommand,
-                                        PrintStream logger, TaskListener listener) throws IOException, InterruptedException {
-        LOGGER.log(Level.INFO,  "Verifying: " + checkCommand);
-        if (conn.exec(checkCommand, logger) != 0) {
-            String aptInstallCommand = "sudo apt update; sudo apt install default-jdk";
-            if(conn.exec(aptInstallCommand, logger) != 0){
-                LOGGER.log(Level.WARNING, "Failed install jdk");
-                return false;
-            }
-        }
-        return true;
-
-    }
-
     private boolean executeRemote(Connection conn, String checkCommand, String command, PrintStream logger)
             throws IOException, InterruptedException {
         LOGGER.log(Level.INFO, "Verifying: " + checkCommand);

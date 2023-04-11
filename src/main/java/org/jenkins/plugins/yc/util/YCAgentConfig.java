@@ -9,12 +9,9 @@ import java.util.List;
 public abstract class YCAgentConfig {
     final String name;
     final String description;
-    final String remoteFS;
-    final int numExecutors;
     final String labelString;
     final Node.Mode mode;
     final String initScript;
-    final String tmpDir;
     final List<? extends NodeProperty<?>> nodeProperties;
     final String remoteAdmin;
     final List<YCTag> tags;
@@ -25,12 +22,9 @@ public abstract class YCAgentConfig {
     private YCAgentConfig(Builder<? extends Builder, ? extends YCAgentConfig> builder) {
         this.name = builder.name;
         this.description = builder.description;
-        this.remoteFS = builder.remoteFS;
-        this.numExecutors = builder.numExecutors;
         this.labelString = builder.labelString;
         this.mode = builder.mode;
         this.initScript = builder.initScript;
-        this.tmpDir = builder.tmpDir;
         this.nodeProperties = builder.nodeProperties;
         this.remoteAdmin = builder.remoteAdmin;
         this.idleTerminationMinutes = builder.idleTerminationMinutes;
@@ -54,12 +48,9 @@ public abstract class YCAgentConfig {
     private static abstract class Builder<B extends Builder<B, C>, C extends YCAgentConfig> {
         private String name;
         private String description;
-        private String remoteFS;
-        private int numExecutors;
         private String labelString;
         private Node.Mode mode;
         private String initScript;
-        private String tmpDir;
         private List<? extends NodeProperty<?>> nodeProperties;
         private String remoteAdmin;
         private String idleTerminationMinutes;
@@ -75,16 +66,6 @@ public abstract class YCAgentConfig {
 
         public B withDescription(String description) {
             this.description = description;
-            return self();
-        }
-
-        public B withRemoteFS(String remoteFS) {
-            this.remoteFS = remoteFS;
-            return self();
-        }
-
-        public B withNumExecutors(int numExecutors) {
-            this.numExecutors = numExecutors;
             return self();
         }
 
@@ -134,11 +115,6 @@ public abstract class YCAgentConfig {
 
         public B withInitScript(String initScript) {
             this.initScript = initScript;
-            return self();
-        }
-
-        public B withTmpDir(String tmpDir) {
-            this.tmpDir = tmpDir;
             return self();
         }
 
