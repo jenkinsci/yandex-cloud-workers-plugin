@@ -130,10 +130,6 @@ public class YandexTemplate implements Describable<YandexTemplate> {
         return Collections.unmodifiableList(tags);
     }
 
-    public int getMinimumNumberOfInstances() {
-        return 1;
-    }
-
     public List<YCAbstractSlave> provision(int number, EnumSet<ProvisionOptions> provisionOptions) throws Exception {
         return provisionOnDemand(number, provisionOptions);
     }

@@ -22,6 +22,7 @@ import org.json.JSONObject;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.verb.POST;
 import yandex.cloud.api.compute.v1.InstanceOuterClass;
+import yandex.cloud.api.compute.v1.InstanceServiceGrpc;
 import yandex.cloud.sdk.ChannelFactory;
 import yandex.cloud.sdk.ServiceFactory;
 import yandex.cloud.sdk.auth.Auth;
@@ -33,6 +34,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -55,6 +58,10 @@ public abstract class AbstractCloud extends Cloud {
     private final List<? extends YandexTemplate> templates;
 
     public final String initVMTemplate;
+
+    private CredentialProvider provider = null;
+
+    private InstanceServiceGrpc.InstanceServiceBlockingStub instanceServiceBlockingStub = null;
 
     private transient ReentrantLock slaveCountingLock = new ReentrantLock();
 
@@ -86,7 +93,7 @@ public abstract class AbstractCloud extends Cloud {
      * Obtains a agent whose AMI matches the AMI of the given template, and that also has requiredLabel (if requiredLabel is non-null)
      * forceCreateNew specifies that the creation of a new agent is required. Otherwise, an existing matching agent may be re-used
      */
-    public List<YCAbstractSlave> getNewOrExistingAvailableSlave(YandexTemplate t, int number, boolean forceCreateNew) {
+    public List<YCAbstractSlave> getNewOrExistingAvailableSlave(YandexTemplate t, int number, boolean forceCreateNew) throws InterruptedException {
         try {
             slaveCountingLock.lock();
             int possibleSlavesCount = 1;
@@ -285,31 +292,36 @@ public abstract class AbstractCloud extends Cloud {
         return matchingTemplates;
     }
 
-    public ServiceFactory getServiceFactory() throws Exception {
+    public InstanceServiceGrpc.InstanceServiceBlockingStub getInstanceServiceBlockingStub() throws Exception {
         ServiceAccount serviceAccount = getCredentials(this.credentialsId);
         if(serviceAccount == null){
             throw new Exception("Failed find serviceAccount");
         }
-        ManagedChannel channel = ManagedChannelBuilder.forTarget("iam.api.cloud.yandex.net:443").build();
-        channel.shutdown();
-        while(!channel.isShutdown()){
-            channel.awaitTermination(1, TimeUnit.SECONDS);
+        if(provider == null || provider.get().getExpiresAt().isBefore(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant())) {
+            LOGGER.info("Token expired. Regenerate");
+            ManagedChannel channel = ManagedChannelBuilder.forTarget("iam".concat(ChannelFactory.DEFAULT_ENDPOINT)).usePlaintext().build();
+            channel.shutdownNow();
+            channel.awaitTermination(1, TimeUnit.MINUTES);
+            provider = Auth.apiKeyBuilder()
+                    .serviceAccountKey(new ServiceAccountKey(serviceAccount.getId(),
+                            serviceAccount.getServiceAccountId(),
+                            serviceAccount.getCreatedAt(),
+                            serviceAccount.getKeyAlgorithm(),
+                            serviceAccount.getPublicKey(),
+                            serviceAccount.getPrivateKey()))
+                    .build();
+            if (provider.get().getToken() == null) {
+                throw new Exception("Failed to login!");
+            }
+            channel = ManagedChannelBuilder.forTarget("compute".concat(ChannelFactory.DEFAULT_ENDPOINT)).usePlaintext().build();
+            channel.shutdownNow();
+            channel.awaitTermination(1, TimeUnit.MINUTES);
+            instanceServiceBlockingStub = ServiceFactory.builder()
+                    .credentialProvider(provider)
+                    .build().create(InstanceServiceGrpc.InstanceServiceBlockingStub.class, InstanceServiceGrpc::newBlockingStub);
         }
-        CredentialProvider provider = Auth.apiKeyBuilder()
-                .serviceAccountKey(new ServiceAccountKey(serviceAccount.getId(),
-                        serviceAccount.getServiceAccountId(),
-                        serviceAccount.getCreatedAt(),
-                        serviceAccount.getKeyAlgorithm(),
-                        serviceAccount.getPublicKey(),
-                        serviceAccount.getPrivateKey()))
-                .build();
-        if (provider.get().getToken() == null) {
-            throw new Exception("Failed to login!");
-        }
-        return ServiceFactory.builder()
-                .credentialProvider(provider)
-                .build();
-        }
+        return instanceServiceBlockingStub;
+    }
 
     public NodeProvisioner.PlannedNode createPlannedNode(YandexTemplate t, YCAbstractSlave slave) {
         return new NodeProvisioner.PlannedNode(t.getParent().getDisplayName(),
@@ -319,7 +331,6 @@ public abstract class AbstractCloud extends Cloud {
 
                     public Node call() throws Exception {
                         while (true) {
-                            Thread.sleep(VM_WAITER);
                             String instanceId = slave.getInstanceId();
                             InstanceOuterClass.Instance instance = Api.getInstanceResponse(instanceId, slave.getCloud());
                             if (instance == null) {
@@ -347,11 +358,11 @@ public abstract class AbstractCloud extends Cloud {
                                     return null;
                                 }
 
-                                LOGGER.log(Level.INFO, "Attempt {0}: {1}. Node {2} is neither pending, neither running, it''s {3}. Will try again after 5s",
+                                LOGGER.log(Level.INFO, "Attempt {0}: {1}. Node {2} is neither pending, neither running, it''s {3}. Will try again after 10s",
                                         new Object[]{retryCount, t, slave.getNodeName(), state});
                                 retryCount++;
                             }
-                            Thread.sleep(5000);
+                            Thread.sleep(10000);
                         }
                     }
                 })
