@@ -6,7 +6,6 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import hudson.Extension;
-import hudson.model.Computer;
 import hudson.model.ItemGroup;
 import hudson.model.Label;
 import hudson.security.ACL;
@@ -61,12 +60,12 @@ public class YandexCloud extends AbstractCloud {
                 final List<YCAbstractSlave> slaves = getNewOrExistingAvailableSlave(t, 1,false);
 
                 if (slaves == null || slaves.isEmpty()) {
-                    LOGGER.warning("Can't raise nodes for " + t);
+                    LOGGER.log(Level.WARNING, "Can't raise nodes for " + t);
                     continue;
                 }
                 for (final YCAbstractSlave slave : slaves) {
                     if (slave == null) {
-                        LOGGER.warning("Can't raise node for " + t);
+                        LOGGER.log(Level.WARNING, "Can't raise node for " + t);
                         continue;
                     }
 
@@ -82,21 +81,6 @@ public class YandexCloud extends AbstractCloud {
         LOGGER.log(Level.INFO, "We have now {0} computers, waiting for {1} more",
                 new Object[]{jenkinsInstance.getComputers().length, plannedNodes.size()});
         return plannedNodes;
-    }
-
-    private static void attachSlavesToJenkins(Jenkins jenkins, List<YCAbstractSlave> slaves, YandexTemplate t) throws IOException {
-        for (final YCAbstractSlave slave : slaves) {
-            if (slave == null) {
-                LOGGER.warning("Can't raise node for " + t);
-                continue;
-            }
-
-            Computer c = slave.toComputer();
-            if (slave.getStopOnTerminate() && c != null) {
-                c.connect(false);
-            }
-            jenkins.addNode(slave);
-        }
     }
 
     @Extension
@@ -140,8 +124,26 @@ public class YandexCloud extends AbstractCloud {
         }
 
         @RequirePOST
+        public FormValidation doCheckCredentialsId(@AncestorInPath ItemGroup context, @QueryParameter String value) throws IOException {
+            Jenkins.get().checkPermission(Jenkins.ADMINISTER);
+            if (value == null || value.isEmpty()){
+                return FormValidation.error("No credentials selected");
+            }
+            return FormValidation.ok();
+        }
+
+        @RequirePOST
         public FormValidation doCheckSshKeysCredentialsId(@AncestorInPath ItemGroup context, @QueryParameter String value) throws IOException {
             return super.doCheckSshKeysCredentialsId(context, value);
+        }
+
+        @RequirePOST
+        public FormValidation doCheckInitVMTemplate(@AncestorInPath ItemGroup context, @QueryParameter String value) throws IOException {
+            Jenkins.get().checkPermission(Jenkins.ADMINISTER);
+            if (value == null || value.isEmpty()){
+                return FormValidation.error("Init VM script empty");
+            }
+            return FormValidation.ok();
         }
     }
 

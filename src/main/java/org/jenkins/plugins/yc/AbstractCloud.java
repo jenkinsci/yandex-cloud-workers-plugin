@@ -17,6 +17,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
+import org.jenkins.plugins.yc.exception.LoginFailed;
 import org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl;
 import org.json.JSONObject;
 import org.kohsuke.stapler.AncestorInPath;
@@ -34,6 +35,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -53,18 +55,11 @@ import static org.jenkins.plugins.yc.AbstractCloud.DescriptorImpl.getCredentials
 public abstract class AbstractCloud extends Cloud {
 
     private static final Logger LOGGER = Logger.getLogger(AbstractCloud.class.getName());
-    private static final long VM_WAITER = 100000;
-
     private final List<? extends YandexTemplate> templates;
-
     public final String initVMTemplate;
-
     private CredentialProvider provider = null;
-
     private InstanceServiceGrpc.InstanceServiceBlockingStub instanceServiceBlockingStub = null;
-
     private transient ReentrantLock slaveCountingLock = new ReentrantLock();
-
     public final String credentialsId;
     public final String folderId;
     @CheckForNull
@@ -129,7 +124,7 @@ public abstract class AbstractCloud extends Cloud {
                     CredentialsProvider.lookupCredentials(FileCredentialsImpl.class, Jenkins.get(), ACL.SYSTEM, Collections.EMPTY_LIST),
                     CredentialsMatchers.withId(credentialsId));
             if(fileCredentials != null){
-                try(BufferedReader reader = new BufferedReader(new InputStreamReader(fileCredentials.getContent(), "UTF-8"))) {
+                try(BufferedReader reader = new BufferedReader(new InputStreamReader(fileCredentials.getContent(), StandardCharsets.UTF_8))) {
                     StringBuilder responseStrBuilder = new StringBuilder();
                     String inputStr;
                     while ((inputStr = reader.readLine()) != null)
@@ -143,9 +138,11 @@ public abstract class AbstractCloud extends Cloud {
                             result.getString("service_account_id"),
                             result.getString("private_key"),
                             result.getString("public_key"));
+                } catch (IOException e) {
+                    throw new IOException(e);
                 }
             }
-            throw new Exception("File not found");
+            throw new LoginFailed("File not found");
         }
 
         /**
@@ -164,7 +161,7 @@ public abstract class AbstractCloud extends Cloud {
             try {
                 ServiceAccount serviceAccount = getCredentials(credentialsId);
                 if (serviceAccount == null) {
-                    throw new Exception("Failed find serviceAccount");
+                    throw new LoginFailed("Failed find serviceAccount");
                 }
                 CredentialProvider provider = Auth.apiKeyBuilder()
                         .serviceAccountKey(new ServiceAccountKey(serviceAccount.getId(),
@@ -175,7 +172,7 @@ public abstract class AbstractCloud extends Cloud {
                                 serviceAccount.getPrivateKey()))
                         .build();
                 if (provider.get().getToken() == null) {
-                    throw new Exception("Failed to login!");
+                    throw new LoginFailed("Failed to login!");
                 }
                 return FormValidation.ok(Messages.YCloud_Success());
             } catch (Exception e) {
@@ -295,10 +292,10 @@ public abstract class AbstractCloud extends Cloud {
     public InstanceServiceGrpc.InstanceServiceBlockingStub getInstanceServiceBlockingStub() throws Exception {
         ServiceAccount serviceAccount = getCredentials(this.credentialsId);
         if(serviceAccount == null){
-            throw new Exception("Failed find serviceAccount");
+            throw new LoginFailed("Failed find serviceAccount");
         }
         if(provider == null || provider.get().getExpiresAt().isBefore(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant())) {
-            LOGGER.info("Token expired. Regenerate");
+            LOGGER.log(Level.WARNING, "Token null or expired. Generate new");
             ManagedChannel channel = ManagedChannelBuilder.forTarget("iam".concat(ChannelFactory.DEFAULT_ENDPOINT)).usePlaintext().build();
             channel.shutdownNow();
             channel.awaitTermination(1, TimeUnit.MINUTES);
@@ -311,7 +308,7 @@ public abstract class AbstractCloud extends Cloud {
                             serviceAccount.getPrivateKey()))
                     .build();
             if (provider.get().getToken() == null) {
-                throw new Exception("Failed to login!");
+                throw new LoginFailed("Failed to login!");
             }
             channel = ManagedChannelBuilder.forTarget("compute".concat(ChannelFactory.DEFAULT_ENDPOINT)).usePlaintext().build();
             channel.shutdownNow();

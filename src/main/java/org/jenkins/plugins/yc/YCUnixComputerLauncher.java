@@ -12,6 +12,7 @@ import hudson.remoting.Channel;
 import jenkins.model.Jenkins;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jenkins.plugins.yc.exception.LaunchScriptException;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -138,7 +139,7 @@ public class YCUnixComputerLauncher extends YCComputerLauncher{
             });
             successful = true;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new LaunchScriptException(e);
         } finally {
             if (cleanupConn != null && !successful)
                 cleanupConn.close();
