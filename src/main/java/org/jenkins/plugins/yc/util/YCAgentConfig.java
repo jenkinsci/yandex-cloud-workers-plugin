@@ -9,6 +9,10 @@ import java.util.List;
 public abstract class YCAgentConfig {
     final String name;
     final String description;
+
+    final String remoteFS;
+
+    final String tmpDir;
     final String labelString;
     final Node.Mode mode;
     final String initScript;
@@ -18,6 +22,8 @@ public abstract class YCAgentConfig {
     final String cloudName;
     final String idleTerminationMinutes;
     final long launchTimeout;
+
+    final int numExecutors;
 
     private YCAgentConfig(Builder<? extends Builder, ? extends YCAgentConfig> builder) {
         this.name = builder.name;
@@ -31,6 +37,9 @@ public abstract class YCAgentConfig {
         this.tags = builder.tags;
         this.cloudName = builder.cloudName;
         this.launchTimeout = builder.launchTimeout;
+        this.numExecutors = builder.numExecutors;
+        this.remoteFS = builder.remoteFS;
+        this.tmpDir = builder.tmpDir;
     }
 
     public static class OnDemand extends YCAgentConfig {
@@ -57,6 +66,12 @@ public abstract class YCAgentConfig {
         private List<YCTag> tags;
         private String cloudName;
         private long launchTimeout;
+
+        private int numExecutors;
+
+        private String remoteFS;
+
+        private String tmpDir;
 
 
         public B withName(String name) {
@@ -115,6 +130,21 @@ public abstract class YCAgentConfig {
 
         public B withInitScript(String initScript) {
             this.initScript = initScript;
+            return self();
+        }
+
+        public B withNumExecutors(int numExecutors) {
+            this.numExecutors = numExecutors;
+            return self();
+        }
+
+        public B withRemoteFS(String remoteFS) {
+            this.remoteFS = remoteFS;
+            return self();
+        }
+
+        public B withTmpDir(String tmpDir) {
+            this.tmpDir = tmpDir;
             return self();
         }
 

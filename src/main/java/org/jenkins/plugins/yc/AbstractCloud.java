@@ -13,8 +13,6 @@ import hudson.security.ACL;
 import hudson.slaves.Cloud;
 import hudson.slaves.NodeProvisioner;
 import hudson.util.FormValidation;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.jenkins.plugins.yc.exception.LoginFailed;
@@ -23,9 +21,6 @@ import org.json.JSONObject;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.verb.POST;
 import yandex.cloud.api.compute.v1.InstanceOuterClass;
-import yandex.cloud.api.compute.v1.InstanceServiceGrpc;
-import yandex.cloud.sdk.ChannelFactory;
-import yandex.cloud.sdk.ServiceFactory;
 import yandex.cloud.sdk.auth.Auth;
 import yandex.cloud.sdk.auth.jwt.ServiceAccountKey;
 import yandex.cloud.sdk.auth.provider.CredentialProvider;
@@ -36,8 +31,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -50,20 +43,16 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.jenkins.plugins.yc.AbstractCloud.DescriptorImpl.getCredentials;
-
 public abstract class AbstractCloud extends Cloud {
 
     private static final Logger LOGGER = Logger.getLogger(AbstractCloud.class.getName());
     private final List<? extends YandexTemplate> templates;
-    public final String initVMTemplate;
-    private CredentialProvider provider = null;
-    private InstanceServiceGrpc.InstanceServiceBlockingStub instanceServiceBlockingStub = null;
+    private final String initVMTemplate;
     private transient ReentrantLock slaveCountingLock = new ReentrantLock();
-    public final String credentialsId;
-    public final String folderId;
+    private final String credentialsId;
+    private final String folderId;
     @CheckForNull
-    public final String sshKeysCredentialsId;
+    private final String sshKeysCredentialsId;
 
 
     protected AbstractCloud(String name,
@@ -263,7 +252,7 @@ public abstract class AbstractCloud extends Cloud {
     @javax.annotation.CheckForNull
     public YandexTemplate getTemplate(String template) {
         for (YandexTemplate t : templates) {
-            if (t.description.equals(template)) {
+            if (t.getDescription().equals(template)) {
                 return t;
             }
         }
@@ -289,39 +278,8 @@ public abstract class AbstractCloud extends Cloud {
         return matchingTemplates;
     }
 
-    public InstanceServiceGrpc.InstanceServiceBlockingStub getInstanceServiceBlockingStub() throws Exception {
-        ServiceAccount serviceAccount = getCredentials(this.credentialsId);
-        if(serviceAccount == null){
-            throw new LoginFailed("Failed find serviceAccount");
-        }
-        if(provider == null || provider.get().getExpiresAt().isBefore(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant())) {
-            LOGGER.log(Level.WARNING, "Token null or expired. Generate new");
-            ManagedChannel channel = ManagedChannelBuilder.forTarget("iam".concat(ChannelFactory.DEFAULT_ENDPOINT)).usePlaintext().build();
-            channel.shutdownNow();
-            channel.awaitTermination(1, TimeUnit.MINUTES);
-            provider = Auth.apiKeyBuilder()
-                    .serviceAccountKey(new ServiceAccountKey(serviceAccount.getId(),
-                            serviceAccount.getServiceAccountId(),
-                            serviceAccount.getCreatedAt(),
-                            serviceAccount.getKeyAlgorithm(),
-                            serviceAccount.getPublicKey(),
-                            serviceAccount.getPrivateKey()))
-                    .build();
-            if (provider.get().getToken() == null) {
-                throw new LoginFailed("Failed to login!");
-            }
-            channel = ManagedChannelBuilder.forTarget("compute".concat(ChannelFactory.DEFAULT_ENDPOINT)).usePlaintext().build();
-            channel.shutdownNow();
-            channel.awaitTermination(1, TimeUnit.MINUTES);
-            instanceServiceBlockingStub = ServiceFactory.builder()
-                    .credentialProvider(provider)
-                    .build().create(InstanceServiceGrpc.InstanceServiceBlockingStub.class, InstanceServiceGrpc::newBlockingStub);
-        }
-        return instanceServiceBlockingStub;
-    }
-
     public NodeProvisioner.PlannedNode createPlannedNode(YandexTemplate t, YCAbstractSlave slave) {
-        return new NodeProvisioner.PlannedNode(t.getParent().getDisplayName(),
+        return new NodeProvisioner.PlannedNode(t.parent.getDisplayName(),
                 Computer.threadPoolForRemoting.submit(new Callable<Node>() {
                     private static final int DESCRIBE_LIMIT = 1;
                     int retryCount = 0;
@@ -329,10 +287,10 @@ public abstract class AbstractCloud extends Cloud {
                     public Node call() throws Exception {
                         while (true) {
                             String instanceId = slave.getInstanceId();
-                            InstanceOuterClass.Instance instance = Api.getInstanceResponse(instanceId, slave.getCloud());
+                            InstanceOuterClass.Instance instance = Api.getInstanceResponse(instanceId, t);
                             if (instance == null) {
                                 LOGGER.log(Level.WARNING, "{0} Can't find instance with instance id `{1}` in cloud {2}. Terminate provisioning ",
-                                        new Object[]{t, instanceId, slave.cloudName});
+                                        new Object[]{t, instanceId, slave.getCloudName()});
                                 return null;
                             }
                             String state = instance.getStatus().name();
@@ -363,6 +321,27 @@ public abstract class AbstractCloud extends Cloud {
                         }
                     }
                 })
-                , 1);
+                , t.getNumExecutors());
+    }
+
+    public String getInitVMTemplate() {
+        return initVMTemplate;
+    }
+
+    public ReentrantLock getSlaveCountingLock() {
+        return slaveCountingLock;
+    }
+
+    public String getCredentialsId() {
+        return credentialsId;
+    }
+
+    public String getFolderId() {
+        return folderId;
+    }
+
+    @CheckForNull
+    public String getSshKeysCredentialsId() {
+        return sshKeysCredentialsId;
     }
 }

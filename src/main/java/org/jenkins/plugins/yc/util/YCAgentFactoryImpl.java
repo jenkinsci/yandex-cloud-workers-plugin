@@ -14,9 +14,11 @@ public class YCAgentFactoryImpl implements YCAgentFactory {
     public YCAbstractSlave createOnDemandAgent(YCAgentConfig.OnDemand config) throws Descriptor.FormException, IOException {
         return new YCOndemandSlave(
                 config.name, config.instanceId,
-                config.description, config.labelString,
+                config.description, config.remoteFS, config.labelString,
                 config.cloudName, config.idleTerminationMinutes,
-                config.initScript, config.remoteAdmin,
-                config.launchTimeout, config.stopOnTerminate);
+                config.initScript, config.tmpDir,
+                config.remoteAdmin, config.nodeProperties,
+                config.launchTimeout, config.stopOnTerminate,
+                config.numExecutors);
     }
 }

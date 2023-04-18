@@ -39,7 +39,7 @@ public class YCComputer extends SlaveComputer {
     public YandexTemplate getSlaveTemplate() {
         YCAbstractSlave node = getNode();
         if (node != null) {
-            return node.getCloud().getTemplate(node.templateDescription);
+            return node.getCloud().getTemplate(node.getTemplateDescription());
         }
         return null;
     }
@@ -47,12 +47,12 @@ public class YCComputer extends SlaveComputer {
 
     public InstanceOuterClass.Instance describeInstance() throws Exception {
         if (ycInstanceDescription == null)
-            ycInstanceDescription = Api.getInstanceResponse(getInstanceId(), getCloud());
+            ycInstanceDescription = Api.getInstanceResponse(getInstanceId(), getSlaveTemplate());
         return ycInstanceDescription;
     }
 
     public String getStatus() throws Exception {
-        ycInstanceDescription = Api.getInstanceResponse(getInstanceId(), getCloud());
+        ycInstanceDescription = Api.getInstanceResponse(getInstanceId(), getSlaveTemplate());
         return ycInstanceDescription.getStatus().name();
     }
 

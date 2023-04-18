@@ -1,0 +1,64 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <l:layout norefresh="true" permission="${app.ADMINISTER}" title="${it.name} Configuration">
+    <st:include page="sidepanel.jelly"/>
+    <l:main-panel>
+      <f:form method="post" action="configSubmit" name="config">
+        <j:set var="instance" value="${it.node}" />
+        <j:set var="descriptor" value="${instance.descriptor}" />
+
+        <f:invisibleEntry>
+           <input type="hidden" name="name" value="${it.name}" />
+        </f:invisibleEntry>
+
+		<f:invisibleEntry>
+           <input type="hidden" name="cloudName" value="${instance.cloud.name}" />
+        </f:invisibleEntry>
+
+		<f:invisibleEntry>
+           <input type="hidden" name="templateDescription" value="${instance.templateDescription}" />
+        </f:invisibleEntry>
+
+        <f:entry title="${%Instance ID}" field="instanceId">
+          <f:readOnlyTextbox />
+        </f:entry>
+
+        <f:entry title="${%# of executors}" field="numExecutors">
+          <f:textbox />
+        </f:entry>
+                
+        <f:entry title="${%Labels}" field="labelString">
+          <f:textbox />
+        </f:entry>
+
+        <f:slave-mode name="mode" node="${instance}" />
+
+        <f:entry title="${%Init Script}" field="initScript">
+          <f:textarea />
+        </f:entry>
+
+        <f:entry title="${%Remote FS root}" field="remoteFS">
+          <f:textbox />
+        </f:entry>
+
+        <f:entry title="${%Remote user}" field="remoteAdmin">
+          <f:textbox />
+        </f:entry>
+        
+	    <f:entry title="${%Stop/Disconnect on Idle Timeout}" field="stopOnTerminate">
+    	  <f:checkbox />
+    	</f:entry>
+
+        <f:entry title="${%Idle termination time}" field="idleTerminationMinutes">
+            <f:textbox />
+        </f:entry>
+
+        <f:descriptorList title="${%Node Properties}" descriptors="${h.getNodePropertyDescriptors(descriptor.clazz)}" field="nodeProperties" />
+
+        <f:block>
+          <f:submit value="${%Save}"/>
+        </f:block>
+      </f:form>
+    </l:main-panel>
+  </l:layout>
+</j:jelly>

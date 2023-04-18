@@ -30,23 +30,23 @@ public abstract class YCAbstractSlave extends Slave {
 
     protected String instanceId;
 
-    public final String initScript;
-    public final String tmpDir;
-    public final String remoteAdmin; // e.g. 'ubuntu'
+    private final String initScript;
+    private final String tmpDir;
+    private final String remoteAdmin; // e.g. 'ubuntu'
 
-    public final String templateDescription;
+    private final String templateDescription;
 
-    public boolean stopOnTerminate;
-    public final String idleTerminationMinutes;
+    private boolean stopOnTerminate;
+    private final String idleTerminationMinutes;
 
-    public boolean isConnected = false;
-    public List<YCTag> tags;
-    public final String cloudName;
-    public int maxTotalUses;
+    private boolean isConnected = false;
+    private List<YCTag> tags;
+    private final String cloudName;
+    private int maxTotalUses;
 
-    public transient String slaveCommandPrefix;
+    private transient String slaveCommandPrefix;
 
-    public transient String slaveCommandSuffix;
+    private transient String slaveCommandSuffix;
 
     /* The last instance data to be fetched for the agent */
     protected transient InstanceOuterClass.Instance lastFetchInstance = null;
@@ -134,7 +134,7 @@ public abstract class YCAbstractSlave extends Slave {
 
     void stop() {
         try {
-            Api.stopInstance(instanceId, getCloud());
+            Api.stopInstance(instanceId, getCloud().getTemplate(templateDescription));
             Computer computer = toComputer();
             if (computer != null) {
                 computer.disconnect(null);
@@ -219,6 +219,42 @@ public abstract class YCAbstractSlave extends Slave {
         return false;
     }
 
+    public String getInitScript() {
+        return initScript;
+    }
+
+    public String getTmpDir() {
+        return tmpDir;
+    }
+
+    public String getTemplateDescription() {
+        return templateDescription;
+    }
+
+    public boolean isStopOnTerminate() {
+        return stopOnTerminate;
+    }
+
+    public String getIdleTerminationMinutes() {
+        return idleTerminationMinutes;
+    }
+
+    public boolean isConnected() {
+        return isConnected;
+    }
+
+    public List<YCTag> getTags() {
+        return tags;
+    }
+
+    public String getCloudName() {
+        return cloudName;
+    }
+
+    public int getMaxTotalUses() {
+        return maxTotalUses;
+    }
+
     /**
      * Called when the agent is connected to Jenkins
      */
@@ -253,7 +289,7 @@ public abstract class YCAbstractSlave extends Slave {
         }
 
         InstanceOuterClass.Instance i;
-        i = Api.getInstanceResponse(getInstanceId(), getCloud());
+        i = Api.getInstanceResponse(getInstanceId(), getCloud().getTemplate(templateDescription));
 
 
         lastFetchTime = now;

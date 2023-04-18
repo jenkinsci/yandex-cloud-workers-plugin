@@ -57,7 +57,8 @@ public class YandexCloud extends AbstractCloud {
         for (YandexTemplate t : matchingTemplates) {
             try {
                 LOGGER.log(Level.INFO, "{0}. Attempting to provision slave needed by excess workload of " + excessWorkload + " units", t);
-                final List<YCAbstractSlave> slaves = getNewOrExistingAvailableSlave(t, 1,false);
+                int number = Math.max(excessWorkload / t.getNumExecutors(), 1);
+                final List<YCAbstractSlave> slaves = getNewOrExistingAvailableSlave(t, number,false);
 
                 if (slaves == null || slaves.isEmpty()) {
                     LOGGER.log(Level.WARNING, "Can't raise nodes for " + t);
@@ -70,7 +71,7 @@ public class YandexCloud extends AbstractCloud {
                     }
 
                     plannedNodes.add(createPlannedNode(t, slave));
-                    excessWorkload -= 1;
+                    excessWorkload -= t.getNumExecutors();
                 }
                 LOGGER.log(Level.INFO, "{0}. Attempting provision finished, excess workload: " + excessWorkload, t);
                 if (excessWorkload == 0) break;

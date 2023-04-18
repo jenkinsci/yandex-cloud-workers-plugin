@@ -69,8 +69,8 @@ public class YCUnixComputerLauncher extends YCComputerLauncher{
             }
             conn = cleanupConn;
             SCPClient scp = conn.createSCPClient();
-            String initScript = node.initScript;
-            String tmpDir = (Util.fixEmptyAndTrim(node.tmpDir) != null ? node.tmpDir : "/tmp");
+            String initScript = node.getInitScript();
+            String tmpDir = (Util.fixEmptyAndTrim(node.getTmpDir()) != null ? node.getTmpDir() : "/tmp");
             LOGGER.log(Level.INFO,  "Creating tmp directory (" + tmpDir + ") if it does not exist");
             conn.exec("mkdir -p " + tmpDir, logger);
             if (initScript != null && initScript.trim().length() > 0

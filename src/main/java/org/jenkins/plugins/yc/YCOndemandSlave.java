@@ -17,11 +17,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * Agent running on YC.
- *
- * @author Kohsuke Kawaguchi
- */
 public class YCOndemandSlave extends YCAbstractSlave {
     private static final Logger LOGGER = Logger.getLogger(YCOndemandSlave.class.getName());
 
@@ -42,7 +37,7 @@ public class YCOndemandSlave extends YCAbstractSlave {
      * Constructor for debugging.
      */
 
-    @Deprecated
+/*    @Deprecated
     public YCOndemandSlave(String name, String instanceId, String templateDescription,
                            String remoteFS, int numExecutors, String labelString, ComputerLauncher launcher,
                            Mode mode, String initScript, String tmpDir,
@@ -50,15 +45,19 @@ public class YCOndemandSlave extends YCAbstractSlave {
                            String remoteAdmin, boolean stopOnTerminate,
                            String idleTerminationMinutes,
                            List<YCTag> tags, String cloudName, long launchTimeout,
-                           String connectionStrategy,
-                           int maxTotalUses)
-            throws FormException, IOException {
+                           int maxTotalUses) {
 
         this(name, instanceId, templateDescription, remoteFS, numExecutors, labelString, launcher, mode, initScript, tmpDir, nodeProperties, remoteAdmin, stopOnTerminate, idleTerminationMinutes, tags, cloudName, launchTimeout, maxTotalUses);
-    }
+    }*/
 
-    public YCOndemandSlave(String name, String instanceId, String description, String labelString, String cloudName, String idleTerminationMinutes, String initScript, String remoteAdmin, long launchTimeOut, boolean stopOnTerminate) throws FormException, IOException {
-        this(name, instanceId, description, "/tmp/hudson", 1, labelString, new YCUnixComputerLauncher(), Mode.NORMAL, initScript, "/tmp", Collections.emptyList(), remoteAdmin, stopOnTerminate, idleTerminationMinutes, null, cloudName,  launchTimeOut,  "PRIVATE_IP", -1);
+    public YCOndemandSlave(String name, String instanceId,
+                           String description, String remoteFS,
+                           String labelString, String cloudName,
+                           String idleTerminationMinutes, String initScript,
+                           String tmpDir, String remoteAdmin, List<? extends NodeProperty<?>> nodeProperties,
+                           long launchTimeOut, boolean stopOnTerminate,
+                           int numExecutors) throws FormException, IOException {
+        this(name, instanceId, description, remoteFS, numExecutors, labelString, new YCUnixComputerLauncher(), Mode.NORMAL, initScript, tmpDir, nodeProperties, remoteAdmin, stopOnTerminate, idleTerminationMinutes, null, cloudName,  launchTimeOut,  -1);
     }
 
     @Override
@@ -71,7 +70,7 @@ public class YCOndemandSlave extends YCAbstractSlave {
                             if (!isAlive(true)) {
                                 LOGGER.log(Level.INFO,"YC instance already terminated: " + getInstanceId());
                             } else {
-                                Api.deleteInstanceResponse(getInstanceId(), getCloud());
+                                Api.deleteInstanceResponse(getInstanceId(), getCloud().getTemplate(getTemplateDescription()));
                             }
                             Jenkins.get().removeNode(this);
                             LOGGER.log(Level.INFO,"Removed YC instance from jenkins master: " + getInstanceId());

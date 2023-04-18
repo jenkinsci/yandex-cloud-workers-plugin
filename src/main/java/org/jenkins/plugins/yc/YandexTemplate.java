@@ -12,14 +12,23 @@ import hudson.model.labels.LabelAtom;
 import hudson.slaves.NodeProperty;
 import hudson.slaves.NodePropertyDescriptor;
 import hudson.util.DescribableList;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
 import jenkins.model.Jenkins;
 import jenkins.slaves.iterators.api.NodeIterator;
+import org.jenkins.plugins.yc.exception.LoginFailed;
 import org.jenkins.plugins.yc.util.YCAgentConfig;
 import org.jenkins.plugins.yc.util.YCAgentFactory;
 import org.kohsuke.stapler.DataBoundConstructor;
 import yandex.cloud.api.compute.v1.InstanceOuterClass;
+import yandex.cloud.api.compute.v1.InstanceServiceGrpc;
 import yandex.cloud.api.compute.v1.InstanceServiceOuterClass;
 import yandex.cloud.api.operation.OperationOuterClass;
+import yandex.cloud.sdk.ChannelFactory;
+import yandex.cloud.sdk.ServiceFactory;
+import yandex.cloud.sdk.auth.Auth;
+import yandex.cloud.sdk.auth.jwt.ServiceAccountKey;
+import yandex.cloud.sdk.auth.provider.CredentialProvider;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -29,8 +38,11 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static org.jenkins.plugins.yc.AbstractCloud.DescriptorImpl.getCredentials;
 
 public class YandexTemplate implements Describable<YandexTemplate> {
 
@@ -38,16 +50,22 @@ public class YandexTemplate implements Describable<YandexTemplate> {
 
     protected transient AbstractCloud parent;
 
-    public final String description;
+    private final String description;
 
-    public final Node.Mode mode;
-    public final String labels;
-    public final String initScript;
-    public final String remoteAdmin;
+    private final Node.Mode mode;
+    private final String labels;
+    private final String initScript;
+    private final String remoteAdmin;
 
-    public final String idleTerminationMinutes;
+    private final String idleTerminationMinutes;
 
-    public final boolean stopOnTerminate;
+    private final int numExecutors;
+
+    private final boolean stopOnTerminate;
+
+    private final String remoteFS;
+
+    private final String tmpDir;
 
     private static final String userData = "#cloud-config%nusers:%n  - name: %s%n    sudo: ['ALL=(ALL) NOPASSWD:ALL']%n    ssh-authorized-keys:%n      - %s";
 
@@ -56,25 +74,29 @@ public class YandexTemplate implements Describable<YandexTemplate> {
     private DescribableList<NodeProperty<?>, NodePropertyDescriptor> nodeProperties;
 
     private transient Set<LabelAtom> labelSet;
-    public int instanceCap;
 
     public enum ProvisionOptions { ALLOW_CREATE, FORCE_CREATE }
 
+    private transient CredentialProvider provider;
+    private transient InstanceServiceGrpc.InstanceServiceBlockingStub instanceServiceBlockingStub;
+
     @DataBoundConstructor
-    public YandexTemplate(String description, Node.Mode mode, String labelString, String initScript, String remoteAdmin, String idleTerminationMinutes, boolean stopOnTerminate, List<YCTag> tags, String instanceCapStr) {
-        this.labels = Util.fixNull(labelString);
+    public YandexTemplate(String description, Node.Mode mode,
+                          String labels, String initScript, String remoteFS, String tmpDir,
+                          String remoteAdmin, String idleTerminationMinutes,
+                          boolean stopOnTerminate, List<YCTag> tags,
+                          int numExecutors) {
+        this.labels = Util.fixNull(labels);
         this.description = description;
         this.mode = mode;
         this.initScript = initScript;
         this.remoteAdmin = remoteAdmin;
+        this.remoteFS = remoteFS == null || remoteFS.isEmpty() ? "/tmp/hudson" : remoteFS;
+        this.tmpDir = tmpDir == null || tmpDir.isEmpty() ? "/tmp" : tmpDir;
         this.idleTerminationMinutes = idleTerminationMinutes;
         this.stopOnTerminate = stopOnTerminate;
         this.tags = tags;
-        if (null == instanceCapStr || instanceCapStr.isEmpty()) {
-            this.instanceCap = Integer.MAX_VALUE;
-        } else {
-            this.instanceCap = Integer.parseInt(instanceCapStr);
-        }
+        this.numExecutors = numExecutors;
         readResolve();
     }
 
@@ -93,10 +115,6 @@ public class YandexTemplate implements Describable<YandexTemplate> {
             nodeProperties = new DescribableList<>(Saveable.NOOP);
         }
 
-        if (instanceCap == 0) {
-            instanceCap = Integer.MAX_VALUE;
-        }
-
         return this;
     }
 
@@ -108,26 +126,58 @@ public class YandexTemplate implements Describable<YandexTemplate> {
         return labelSet;
     }
 
-    public String getInstanceCapStr() {
-        if (instanceCap == Integer.MAX_VALUE) {
-            return "";
-        } else {
-            return String.valueOf(instanceCap);
-        }
+    public List<YCTag> getTags() {
+        if (null == tags)
+            return null;
+        return Collections.unmodifiableList(tags);
     }
 
     public AbstractCloud getParent() {
         return parent;
     }
 
-    public String getLabelString() {
+    public String getDescription() {
+        return description;
+    }
+
+    public String getLabels() {
         return labels;
     }
 
-    public List<YCTag> getTags() {
-        if (null == tags)
-            return null;
-        return Collections.unmodifiableList(tags);
+    public String getInitScript() {
+        return initScript;
+    }
+
+    public String getRemoteAdmin() {
+        return remoteAdmin;
+    }
+
+    public String getIdleTerminationMinutes() {
+        return idleTerminationMinutes;
+    }
+
+    public int getNumExecutors() {
+        return numExecutors;
+    }
+
+    public boolean isStopOnTerminate() {
+        return stopOnTerminate;
+    }
+
+    public DescribableList<NodeProperty<?>, NodePropertyDescriptor> getNodeProperties() {
+        return nodeProperties;
+    }
+
+    public CredentialProvider getProvider() {
+        return provider;
+    }
+
+    public String getRemoteFS() {
+        return remoteFS;
+    }
+
+    public String getTmpDir() {
+        return tmpDir;
     }
 
     public List<YCAbstractSlave> provision(int number, EnumSet<ProvisionOptions> provisionOptions) throws Exception {
@@ -152,7 +202,7 @@ public class YandexTemplate implements Describable<YandexTemplate> {
         int needCreateCount = number - orphans.size();
         InstanceServiceOuterClass.ListInstancesResponse listInstancesResponse = Api.getFilterInstanceResponse(this);
         if(needCreateCount > 0 && listInstancesResponse.getInstancesList().isEmpty()) {
-            doCreateVM(this);
+            doCreateVM();
         }
         return toSlaves(tplInstance().get(0));
     }
@@ -187,6 +237,9 @@ public class YandexTemplate implements Describable<YandexTemplate> {
                 .withIdleTerminationMinutes(idleTerminationMinutes)
                 .withLaunchTimeout(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
                 .withNodeProperties(nodeProperties.toList())
+                .withNumExecutors(numExecutors)
+                .withRemoteFS(remoteFS)
+                .withTmpDir(tmpDir)
                 .build();
         return YCAgentFactory.getInstance().createOnDemandAgent(config);
     }
@@ -242,7 +295,7 @@ public class YandexTemplate implements Describable<YandexTemplate> {
         }
     }
 
-    public void doCreateVM(YandexTemplate template) throws Exception {
+    public void doCreateVM() throws Exception {
         Jenkins.get().checkPermission(Jenkins.ADMINISTER);
         String remote = remoteAdmin.isEmpty() ? "root" : remoteAdmin;
         YCPrivateKey privateKey =  this.parent.resolvePrivateKey();
@@ -251,17 +304,48 @@ public class YandexTemplate implements Describable<YandexTemplate> {
         }
         InstanceServiceOuterClass.CreateInstanceRequest createInstanceRequest;
         InstanceServiceOuterClass.CreateInstanceRequest.Builder builder = InstanceServiceOuterClass.CreateInstanceRequest.newBuilder();
-        TextFormat.merge(template.parent.initVMTemplate, builder);
+        TextFormat.merge(this.parent.getInitVMTemplate(), builder);
         createInstanceRequest = builder
                 .setName(parent.name)
                 .setZoneId("ru-central1-b")
-                .setFolderId(parent.folderId)
+                .setFolderId(parent.getFolderId())
                 .putMetadata("user-data", String.format(userData, remote, privateKey.getPublicFingerprint() + "= " + remote))
                 .build();
-        OperationOuterClass.Operation response = Api.createInstanceResponse(template, createInstanceRequest);
+        OperationOuterClass.Operation response = Api.createInstanceResponse(this, createInstanceRequest);
         if(!response.getError().getMessage().isEmpty()){
             throw new Exception("Error for create: " + response.getError().getMessage());
         }
+    }
+
+    public InstanceServiceGrpc.InstanceServiceBlockingStub getInstanceServiceBlockingStub() throws Exception {
+        ServiceAccount serviceAccount = getCredentials(parent.getCredentialsId());
+        if(serviceAccount == null){
+            throw new LoginFailed("Failed find serviceAccount");
+        }
+        if(provider == null || provider.get().getExpiresAt().isBefore(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant())) {
+            LOGGER.log(Level.WARNING, "Token null or expired. Generate new");
+            ManagedChannel channel = ManagedChannelBuilder.forTarget("iam".concat(ChannelFactory.DEFAULT_ENDPOINT)).usePlaintext().build();
+            channel.shutdownNow();
+            channel.awaitTermination(1, TimeUnit.MINUTES);
+            provider = Auth.apiKeyBuilder()
+                    .serviceAccountKey(new ServiceAccountKey(serviceAccount.getId(),
+                            serviceAccount.getServiceAccountId(),
+                            serviceAccount.getCreatedAt(),
+                            serviceAccount.getKeyAlgorithm(),
+                            serviceAccount.getPublicKey(),
+                            serviceAccount.getPrivateKey()))
+                    .build();
+            if (provider.get().getToken() == null) {
+                throw new LoginFailed("Failed to login!");
+            }
+            channel = ManagedChannelBuilder.forTarget("compute".concat(ChannelFactory.DEFAULT_ENDPOINT)).usePlaintext().build();
+            channel.shutdownNow();
+            channel.awaitTermination(1, TimeUnit.MINUTES);
+            instanceServiceBlockingStub = ServiceFactory.builder()
+                    .credentialProvider(provider)
+                    .build().create(InstanceServiceGrpc.InstanceServiceBlockingStub.class, InstanceServiceGrpc::newBlockingStub);
+        }
+        return instanceServiceBlockingStub;
     }
 
 
