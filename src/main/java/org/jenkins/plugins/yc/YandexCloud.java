@@ -35,9 +35,8 @@ public class YandexCloud extends AbstractCloud {
     @DataBoundConstructor
     public YandexCloud(String name,
                        List<? extends YandexTemplate> templates, String credentialsId,
-                       String folderId, String sshKeysCredentialsId,
-                       String initVMTemplate) {
-        super(name, templates, credentialsId, folderId, sshKeysCredentialsId, initVMTemplate);
+                       String folderId, String sshKeysCredentialsId) {
+        super(name, templates, credentialsId, folderId, sshKeysCredentialsId);
     }
 
     @Override
@@ -58,21 +57,14 @@ public class YandexCloud extends AbstractCloud {
             try {
                 LOGGER.log(Level.INFO, "{0}. Attempting to provision slave needed by excess workload of " + excessWorkload + " units", t);
                 int number = Math.max(excessWorkload / t.getNumExecutors(), 1);
-                final List<YCAbstractSlave> slaves = getNewOrExistingAvailableSlave(t, number,false);
+                final YCAbstractSlave slave = getNewOrExistingAvailableSlave(t, number,false);
 
-                if (slaves == null || slaves.isEmpty()) {
+                if (slave == null) {
                     LOGGER.log(Level.WARNING, "Can't raise nodes for " + t);
                     continue;
                 }
-                for (final YCAbstractSlave slave : slaves) {
-                    if (slave == null) {
-                        LOGGER.log(Level.WARNING, "Can't raise node for " + t);
-                        continue;
-                    }
-
-                    plannedNodes.add(createPlannedNode(t, slave));
-                    excessWorkload -= t.getNumExecutors();
-                }
+                plannedNodes.add(createPlannedNode(t, slave));
+                excessWorkload -= t.getNumExecutors();
                 LOGGER.log(Level.INFO, "{0}. Attempting provision finished, excess workload: " + excessWorkload, t);
                 if (excessWorkload == 0) break;
             } catch (Exception e) {
@@ -106,14 +98,14 @@ public class YandexCloud extends AbstractCloud {
         }
 
         @RequirePOST
-        public ListBoxModel doFillCredentialsIdItems() {
+        public ListBoxModel doFillCredentialsIdItems(@AncestorInPath ItemGroup context) {
             Jenkins.get().checkPermission(Jenkins.ADMINISTER);
             return new StandardListBoxModel()
                     .includeEmptyValue()
                     .withMatching(
                             CredentialsMatchers.always(),
                             CredentialsProvider.lookupCredentials(FileCredentialsImpl.class,
-                                    Jenkins.get(),
+                                    context,
                                     ACL.SYSTEM,
                                     Collections.emptyList()));
         }
@@ -136,15 +128,6 @@ public class YandexCloud extends AbstractCloud {
         @RequirePOST
         public FormValidation doCheckSshKeysCredentialsId(@AncestorInPath ItemGroup context, @QueryParameter String value) throws IOException {
             return super.doCheckSshKeysCredentialsId(context, value);
-        }
-
-        @RequirePOST
-        public FormValidation doCheckInitVMTemplate(@AncestorInPath ItemGroup context, @QueryParameter String value) throws IOException {
-            Jenkins.get().checkPermission(Jenkins.ADMINISTER);
-            if (value == null || value.isEmpty()){
-                return FormValidation.error("Init VM script empty");
-            }
-            return FormValidation.ok();
         }
     }
 

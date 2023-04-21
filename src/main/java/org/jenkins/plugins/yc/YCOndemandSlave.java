@@ -37,18 +37,11 @@ public class YCOndemandSlave extends YCAbstractSlave {
      * Constructor for debugging.
      */
 
-/*    @Deprecated
-    public YCOndemandSlave(String name, String instanceId, String templateDescription,
-                           String remoteFS, int numExecutors, String labelString, ComputerLauncher launcher,
-                           Mode mode, String initScript, String tmpDir,
-                           List<? extends NodeProperty<?>> nodeProperties,
-                           String remoteAdmin, boolean stopOnTerminate,
-                           String idleTerminationMinutes,
-                           List<YCTag> tags, String cloudName, long launchTimeout,
-                           int maxTotalUses) {
+    @Deprecated
+    public YCOndemandSlave(String instanceId) throws FormException, IOException {
 
-        this(name, instanceId, templateDescription, remoteFS, numExecutors, labelString, launcher, mode, initScript, tmpDir, nodeProperties, remoteAdmin, stopOnTerminate, idleTerminationMinutes, tags, cloudName, launchTimeout, maxTotalUses);
-    }*/
+        this(instanceId, instanceId, "debug", "/tmp/hudson", 1, "debug", new YCUnixComputerLauncher(), Mode.NORMAL, "", "/tmp", Collections.emptyList(), null, false, null, null, "debug", 0, -1);
+    }
 
     public YCOndemandSlave(String name, String instanceId,
                            String description, String remoteFS,

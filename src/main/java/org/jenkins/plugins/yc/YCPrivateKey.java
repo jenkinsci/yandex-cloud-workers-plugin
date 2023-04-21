@@ -15,7 +15,7 @@ public class YCPrivateKey {
 
     private final Secret privateKey;
 
-    YCPrivateKey(String privateKey) {
+    public YCPrivateKey(String privateKey) {
         this.privateKey = Secret.fromString(privateKey.trim());
     }
 

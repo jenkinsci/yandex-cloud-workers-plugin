@@ -4,13 +4,10 @@
         <f:textbox />
     </f:entry>
 
-    <f:entry title="${%InitVMTemplate}" field="initVMTemplate">
-        <f:textarea checkMethod="post"/>
-    </f:entry>
-
     <f:entry title="${%Name}" field="name">
         <f:textbox/>
     </f:entry>
+
     <f:entry title="${%Credentials}" field="credentialsId"
              description="${%Credentials_DESC}">
         <c:select checkMethod="post"/>

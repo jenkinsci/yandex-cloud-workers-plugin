@@ -1,7 +1,7 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:f="/lib/form">
   <st:include class="${descriptor.clazz}" page="config-entries.jelly"/>
-  <f:entry title="YandexCloudSettings">
+  <f:entry title="YandexVMSettings">
     <f:repeatable field="templates">
       <st:include page="config.jelly" class="${descriptor.clazz}"/>
     </f:repeatable>

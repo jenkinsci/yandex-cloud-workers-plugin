@@ -25,7 +25,6 @@ import yandex.cloud.sdk.auth.Auth;
 import yandex.cloud.sdk.auth.jwt.ServiceAccountKey;
 import yandex.cloud.sdk.auth.provider.CredentialProvider;
 
-import javax.servlet.ServletException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -47,7 +46,6 @@ public abstract class AbstractCloud extends Cloud {
 
     private static final Logger LOGGER = Logger.getLogger(AbstractCloud.class.getName());
     private final List<? extends YandexTemplate> templates;
-    private final String initVMTemplate;
     private transient ReentrantLock slaveCountingLock = new ReentrantLock();
     private final String credentialsId;
     private final String folderId;
@@ -57,14 +55,12 @@ public abstract class AbstractCloud extends Cloud {
 
     protected AbstractCloud(String name,
                             List<? extends YandexTemplate> templates, String credentialsId,
-                            String folderId, String sshKeysCredentialsId,
-                            String initVMTemplate) {
+                            String folderId, String sshKeysCredentialsId) {
         super(name);
         this.templates = Objects.requireNonNullElse(templates, Collections.emptyList());
         this.credentialsId = credentialsId;
         this.folderId = folderId;
         this.sshKeysCredentialsId = sshKeysCredentialsId;
-        this.initVMTemplate = initVMTemplate;
         readResolve();
     }
 
@@ -77,7 +73,7 @@ public abstract class AbstractCloud extends Cloud {
      * Obtains a agent whose AMI matches the AMI of the given template, and that also has requiredLabel (if requiredLabel is non-null)
      * forceCreateNew specifies that the creation of a new agent is required. Otherwise, an existing matching agent may be re-used
      */
-    public List<YCAbstractSlave> getNewOrExistingAvailableSlave(YandexTemplate t, int number, boolean forceCreateNew) throws InterruptedException {
+    public YCAbstractSlave getNewOrExistingAvailableSlave(YandexTemplate t, int number, boolean forceCreateNew) {
         try {
             slaveCountingLock.lock();
             int possibleSlavesCount = 1;
@@ -137,12 +133,9 @@ public abstract class AbstractCloud extends Cloud {
         /**
          * Tests the connection settings.
          * <p>
-         * Overriding needs to {@code @RequirePOST}
          *
          * @param credentialsId
          * @return the validation result
-         * @throws IOException
-         * @throws ServletException
          */
         @POST
         protected FormValidation doTestConnection(@AncestorInPath ItemGroup context, String credentialsId) {
@@ -281,7 +274,7 @@ public abstract class AbstractCloud extends Cloud {
     public NodeProvisioner.PlannedNode createPlannedNode(YandexTemplate t, YCAbstractSlave slave) {
         return new NodeProvisioner.PlannedNode(t.parent.getDisplayName(),
                 Computer.threadPoolForRemoting.submit(new Callable<Node>() {
-                    private static final int DESCRIBE_LIMIT = 1;
+                    private static final int DESCRIBE_LIMIT = 2;
                     int retryCount = 0;
 
                     public Node call() throws Exception {
@@ -322,10 +315,6 @@ public abstract class AbstractCloud extends Cloud {
                     }
                 })
                 , t.getNumExecutors());
-    }
-
-    public String getInitVMTemplate() {
-        return initVMTemplate;
     }
 
     public ReentrantLock getSlaveCountingLock() {
