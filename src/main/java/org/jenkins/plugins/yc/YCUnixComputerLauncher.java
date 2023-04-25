@@ -54,8 +54,7 @@ public class YCUnixComputerLauncher extends YCComputerLauncher{
         try{
             boolean isBootstrapped = bootstrap(computer, listener, template);
             if (isBootstrapped) {
-                // connect fresh as ROOT
-                LOGGER.log(Level.INFO, "connect fresh as root");
+                LOGGER.log(Level.INFO, "connect fresh as " + computer.getRemoteAdmin());
                 cleanupConn = connectToSsh(computer, listener);
                 YCPrivateKey ycPrivateKey = computer.getCloud().resolvePrivateKey();
                 if (ycPrivateKey == null || !cleanupConn.authenticateWithPublicKey(computer.getRemoteAdmin(),
