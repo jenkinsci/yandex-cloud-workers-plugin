@@ -28,9 +28,9 @@ public class YCUnixComputerLauncher extends YCComputerLauncher{
 
     private static final Logger LOGGER = Logger.getLogger(YCUnixComputerLauncher.class.getName());
 
-    private static int bootstrapAuthTries = 10;
+    private static final int bootstrapAuthTries = 10;
 
-    private static int bootstrapAuthSleepMs = 30000;
+    private static final int bootstrapAuthSleepMs = 30000;
 
     @Override
     protected boolean launchScript(YCComputer computer, TaskListener listener) throws IOException {

@@ -1,9 +1,5 @@
 package org.jenkins.plugins.yc;
 
-import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
-import com.cloudbees.plugins.credentials.CredentialsMatchers;
-import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
-import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.google.protobuf.TextFormat;
 import hudson.Extension;
 import hudson.Util;
@@ -14,12 +10,10 @@ import hudson.model.Label;
 import hudson.model.Node;
 import hudson.model.Saveable;
 import hudson.model.labels.LabelAtom;
-import hudson.security.ACL;
 import hudson.slaves.NodeProperty;
 import hudson.slaves.NodePropertyDescriptor;
 import hudson.util.DescribableList;
 import hudson.util.FormValidation;
-import hudson.util.ListBoxModel;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import jenkins.model.Jenkins;

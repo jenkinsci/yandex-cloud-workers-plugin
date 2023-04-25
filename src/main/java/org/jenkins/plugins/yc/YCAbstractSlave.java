@@ -42,7 +42,6 @@ public abstract class YCAbstractSlave extends Slave {
     private boolean isConnected = false;
     private List<YCTag> tags;
     private final String cloudName;
-    private int maxTotalUses;
 
     private transient String slaveCommandPrefix;
 
@@ -66,7 +65,7 @@ public abstract class YCAbstractSlave extends Slave {
                            Mode mode, String labelString, ComputerLauncher launcher, RetentionStrategy<YCComputer> retentionStrategy,
                            String initScript, String tmpDir, List<? extends NodeProperty<?>> nodeProperties, String remoteAdmin,
                            boolean stopOnTerminate, String idleTerminationMinutes, List<YCTag> tags, String cloudName,
-                           long launchTimeout, int maxTotalUses)
+                           long launchTimeout)
             throws FormException, IOException {
         super(name, remoteFS, launcher);
         setNumExecutors(numExecutors);
@@ -85,7 +84,6 @@ public abstract class YCAbstractSlave extends Slave {
         this.tags = tags;
         this.cloudName = cloudName;
         this.launchTimeout = launchTimeout;
-        this.maxTotalUses = maxTotalUses;
         readResolve();
     }
 
@@ -249,10 +247,6 @@ public abstract class YCAbstractSlave extends Slave {
 
     public String getCloudName() {
         return cloudName;
-    }
-
-    public int getMaxTotalUses() {
-        return maxTotalUses;
     }
 
     /**

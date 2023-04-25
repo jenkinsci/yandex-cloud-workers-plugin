@@ -21,7 +21,7 @@ public class YCOnDemandSlaveTest {
                 "initScript", "tmpDir",
                 Collections.emptyList(), "remoteAdmin",
                 false, "30", Collections.emptyList(),
-                "cloudName",  0, -1);
+                "cloudName",  0);
         assertEquals(Node.Mode.NORMAL, slaveNormal.getMode());
 
         YCOndemandSlave slaveExclusive = new YCOndemandSlave("name", "instanceId",
@@ -30,7 +30,7 @@ public class YCOnDemandSlaveTest {
                 "initScript", "tmpDir", Collections.emptyList(),
                 "remoteAdmin", false, "30",
                 Collections.emptyList(), "cloudName",
-                0, -1);
+                0);
 
         assertEquals(Node.Mode.EXCLUSIVE, slaveExclusive.getMode());
     }

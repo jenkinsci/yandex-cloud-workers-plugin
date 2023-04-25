@@ -70,7 +70,7 @@ public abstract class AbstractCloud extends Cloud {
     }
 
     /**
-     * Obtains a agent whose AMI matches the AMI of the given template, and that also has requiredLabel (if requiredLabel is non-null)
+     * Obtains a agent whose matches the given template, and that also has requiredLabel (if requiredLabel is non-null)
      * forceCreateNew specifies that the creation of a new agent is required. Otherwise, an existing matching agent may be re-used
      */
     public YCAbstractSlave getNewOrExistingAvailableSlave(YandexTemplate t, int number, boolean forceCreateNew) {
@@ -180,14 +180,10 @@ public abstract class AbstractCloud extends Cloud {
             BufferedReader br = new BufferedReader(new StringReader(privateKey));
             String line;
             while ((line = br.readLine()) != null) {
-                if (line.equals("-----BEGIN RSA PRIVATE KEY-----") ||
-                        line.equals("-----BEGIN DSA PRIVATE KEY-----")||
-                        line.equals("-----BEGIN EC PRIVATE KEY-----")) {
+                if (line.equals("-----BEGIN RSA PRIVATE KEY-----")) {
                     hasStart = true;
                 }
-                if (line.equals("-----END RSA PRIVATE KEY-----") ||
-                        line.equals("-----END DSA PRIVATE KEY-----")||
-                        line.equals("-----END EC PRIVATE KEY-----")) {
+                if (line.equals("-----END RSA PRIVATE KEY-----")) {
                     hasEnd = true;
                 }
                 if(line.equals("-----BEGIN OPENSSH PRIVATE KEY-----")){
@@ -274,7 +270,7 @@ public abstract class AbstractCloud extends Cloud {
     public NodeProvisioner.PlannedNode createPlannedNode(YandexTemplate t, YCAbstractSlave slave) {
         return new NodeProvisioner.PlannedNode(t.parent.getDisplayName(),
                 Computer.threadPoolForRemoting.submit(new Callable<Node>() {
-                    private static final int DESCRIBE_LIMIT = 2;
+                    private static final int DESCRIBE_LIMIT = 5;
                     int retryCount = 0;
 
                     public Node call() throws Exception {
