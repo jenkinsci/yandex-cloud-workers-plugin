@@ -2,7 +2,7 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:f="/lib/form" xmlns:ec="/lib/yc">
   <ec:blockWrapper>
 
-    <f:entry title="${%Name}" field="vmName">
+    <f:entry title="${%VM Name}" field="vmName">
       <f:textbox checkMethod="post"/>
     </f:entry>
 
