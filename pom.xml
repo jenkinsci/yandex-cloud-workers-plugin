@@ -18,14 +18,18 @@
     <description>This is a Jenkins plugin to support Yandex cloud</description>
     <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
 
-    <developers>
-        <!-- current maintainers -->
-        <developer>
-            <id>Khaustov</id>
+    <contributors>
+        <contributor>
             <name>Gerbert Khaustov</name>
             <email>g.khaustov@softwarecats.dev</email>
-        </developer>
-    </developers>
+            <organization>SoftwareCats</organization>
+            <organizationUrl>https://softwarecats.dev/en</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>Russia/Novosibirsk</timezone>
+        </contributor>
+    </contributors>
 
     <properties>
         <revision>1.0.0</revision>
