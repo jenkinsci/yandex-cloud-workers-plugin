@@ -27,7 +27,8 @@ There, you find button "Add a new cloud", and choose
 
 After that, you can see UI form for configure your yandex cloud agent. 
 To fill cloud name, folder id, select Yandex Service Account credentials, 
-and YC Key Pair's Private Key. Is your private rsa key for ssh access to VM. 
+and YC Key Pair's Private Key. Is your private rsa key for ssh access to VM.
+Right now plugin support only RSA pem key format.
 
 ![](docs/agentSettings.png)
 
