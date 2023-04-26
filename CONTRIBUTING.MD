@@ -17,13 +17,14 @@ maintainers and smooth out the experience for all involved.
      * [Suggesting Enhancements](#suggesting-enhancements)     
        * [Before Submitting an Enhancement](#before-submitting-an-enhancement)
        * [Submitting an Enhancement](#submitting-an-enhancement)
+   * [Following ways](#following-ways)
 
 
 ## I Have a Question
 
 > If you want to ask a question, read the [documentation](https://gitlab.com/softwarecats/opensource/jenkins-yandex-cloud-plugin/-/blob/master/README.md) first.
 
-If you still have questions after reading it, please contact the development team in the [following ways]().
+If you still have questions after reading it, please contact the development team in the [following ways](#following-ways).
 
 ## I Want To Contribute
 
