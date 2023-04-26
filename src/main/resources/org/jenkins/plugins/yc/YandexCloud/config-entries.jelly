@@ -13,7 +13,7 @@
         <c:select checkMethod="post"/>
     </f:entry>
     <f:validateButton title="${%Test Connection}" progress="${%Testing...}" method="testConnection" with="credentialsId" />
-    <f:entry title="${%YC Key Pair's Private Key}" field="sshKeysCredentialsId">
+    <f:entry title="${%SSH Private Key}" field="sshKeysCredentialsId">
         <c:select includeUser="false" checkMethod="post"/>
     </f:entry>
 </j:jelly>
