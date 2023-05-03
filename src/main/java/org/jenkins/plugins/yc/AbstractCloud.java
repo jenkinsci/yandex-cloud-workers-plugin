@@ -49,18 +49,21 @@ public abstract class AbstractCloud extends Cloud {
     private transient ReentrantLock slaveCountingLock = new ReentrantLock();
     private final String credentialsId;
     private final String folderId;
+    private final int authSleepMs;
+
     @CheckForNull
     private final String sshKeysCredentialsId;
 
 
     protected AbstractCloud(String name,
                             List<? extends YandexTemplate> templates, String credentialsId,
-                            String folderId, String sshKeysCredentialsId) {
+                            String folderId, String sshKeysCredentialsId, int authSleepMs) {
         super(name);
         this.templates = Objects.requireNonNullElse(templates, Collections.emptyList());
         this.credentialsId = credentialsId;
         this.folderId = folderId;
         this.sshKeysCredentialsId = sshKeysCredentialsId;
+        this.authSleepMs = authSleepMs != 0 ? authSleepMs : 300000;
         readResolve();
     }
 
@@ -269,7 +272,7 @@ public abstract class AbstractCloud extends Cloud {
 
     public NodeProvisioner.PlannedNode createPlannedNode(YandexTemplate t, YCAbstractSlave slave) {
         return new NodeProvisioner.PlannedNode(t.parent.getDisplayName(),
-                Computer.threadPoolForRemoting.submit(new Callable<Node>() {
+                Computer.threadPoolForRemoting.submit(new Callable<>() {
                     private static final int DESCRIBE_LIMIT = 5;
                     int retryCount = 0;
 
@@ -328,5 +331,9 @@ public abstract class AbstractCloud extends Cloud {
     @CheckForNull
     public String getSshKeysCredentialsId() {
         return sshKeysCredentialsId;
+    }
+
+    public int getAuthSleepMs() {
+        return authSleepMs;
     }
 }

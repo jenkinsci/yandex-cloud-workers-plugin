@@ -35,8 +35,8 @@ public class YandexCloud extends AbstractCloud {
     @DataBoundConstructor
     public YandexCloud(String name,
                        List<? extends YandexTemplate> templates, String credentialsId,
-                       String folderId, String sshKeysCredentialsId) {
-        super(name, templates, credentialsId, folderId, sshKeysCredentialsId);
+                       String folderId, String sshKeysCredentialsId, int authSleepMs) {
+        super(name, templates, credentialsId, folderId, sshKeysCredentialsId, authSleepMs);
     }
 
     @Override
@@ -66,7 +66,7 @@ public class YandexCloud extends AbstractCloud {
                 plannedNodes.add(createPlannedNode(t, slave));
                 excessWorkload -= t.getNumExecutors();
                 LOGGER.log(Level.INFO, "{0}. Attempting provision finished, excess workload: " + excessWorkload, t);
-                if (excessWorkload == 0) break;
+                if (excessWorkload <= 0) break;
             } catch (Exception e) {
                 LOGGER.log(Level.WARNING, t + ". Exception during provisioning", e);
             }
@@ -88,12 +88,9 @@ public class YandexCloud extends AbstractCloud {
         @RequirePOST
         public ListBoxModel doFillSshKeysCredentialsIdItems(@AncestorInPath ItemGroup context, @QueryParameter String sshKeysCredentialsId) {
             Jenkins.get().checkPermission(Jenkins.ADMINISTER);
-
-            StandardListBoxModel result = new StandardListBoxModel();
-
-            return result
-                    .includeMatchingAs(Jenkins.getAuthentication(), context, SSHUserPrivateKey.class, Collections.<DomainRequirement>emptyList(), CredentialsMatchers.always())
-                    .includeMatchingAs(ACL.SYSTEM, context, SSHUserPrivateKey.class, Collections.<DomainRequirement>emptyList(), CredentialsMatchers.always())
+            return new StandardListBoxModel()
+                    .includeMatchingAs(Jenkins.getAuthentication(), context, SSHUserPrivateKey.class, Collections.emptyList(), CredentialsMatchers.always())
+                    .includeMatchingAs(ACL.SYSTEM, context, SSHUserPrivateKey.class, Collections.emptyList(), CredentialsMatchers.always())
                     .includeCurrentValue(sshKeysCredentialsId);
         }
 

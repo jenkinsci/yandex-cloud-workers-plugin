@@ -13,6 +13,7 @@ import jenkins.model.Jenkins;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jenkins.plugins.yc.exception.LaunchScriptException;
+import org.jenkins.plugins.yc.exception.YandexClientException;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -27,8 +28,6 @@ import static org.jenkins.plugins.yc.YCHostAddressProvider.getPrivateIpAddress;
 public class YCUnixComputerLauncher extends YCComputerLauncher{
 
     private static final Logger LOGGER = Logger.getLogger(YCUnixComputerLauncher.class.getName());
-
-    private static final int bootstrapAuthTries = 10;
 
     private static final int bootstrapAuthSleepMs = 30000;
 
@@ -63,8 +62,8 @@ public class YCUnixComputerLauncher extends YCComputerLauncher{
                     return false; // failed to connect as root.
                 }
             } else {
-                LOGGER.log(Level.WARNING, "bootstrapresult failed");
-                return false; // bootstrap closed for us.
+                LOGGER.log(Level.WARNING, "Bootstrap result failed");
+                throw new YandexClientException("Ssh connection error");
             }
             conn = cleanupConn;
             SCPClient scp = conn.createSCPClient();
@@ -138,7 +137,8 @@ public class YCUnixComputerLauncher extends YCComputerLauncher{
             });
             successful = true;
         } catch (Exception e) {
-            throw new LaunchScriptException(e);
+            LOGGER.log(Level.WARNING,  "Error via launch agent " + e.getMessage());
+            throw new YandexClientException(e.getMessage());
         } finally {
             if (cleanupConn != null && !successful)
                 cleanupConn.close();
@@ -152,7 +152,8 @@ public class YCUnixComputerLauncher extends YCComputerLauncher{
         LOGGER.log(Level.INFO, "bootstrap()");
         Connection bootstrapConn = null;
         try {
-            int tries = bootstrapAuthTries;
+            int tries = template.getParent().getAuthSleepMs() / bootstrapAuthSleepMs;
+            tries = tries == 0 ? 1 : tries;
             boolean isAuthenticated = false;
             LOGGER.log(Level.INFO, "Getting keypair...");
             YCPrivateKey ycPrivateKey = computer.getCloud().resolvePrivateKey();
@@ -178,7 +179,7 @@ public class YCUnixComputerLauncher extends YCComputerLauncher{
                 Thread.sleep(bootstrapAuthSleepMs);
             }
             if (!isAuthenticated) {
-                LOGGER.log(Level.WARNING, "Authentication failed");
+                LOGGER.log(Level.WARNING, "Authentication failed, timed out after" + (tries * bootstrapAuthSleepMs / 1000) + "s with status " + computer.getStatus());
                 return false;
             }
         } finally {
