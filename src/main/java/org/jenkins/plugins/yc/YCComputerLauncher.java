@@ -4,7 +4,6 @@ import hudson.model.TaskListener;
 import hudson.slaves.ComputerLauncher;
 import hudson.slaves.OfflineCause;
 import hudson.slaves.SlaveComputer;
-import jenkins.model.Jenkins;
 import org.jvnet.localizer.Localizable;
 
 import java.io.IOException;
@@ -32,7 +31,7 @@ public abstract class YCComputerLauncher extends ComputerLauncher {
                     if(computer != null) {
                         computer.setTemporarilyOffline(true, OfflineCause.create(cleanUpReason));
                     }
-                    ycAbstractSlave.terminate();
+                    //ycAbstractSlave.terminate();
                 }
             }
         }

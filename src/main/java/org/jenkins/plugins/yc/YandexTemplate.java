@@ -225,7 +225,7 @@ public class YandexTemplate implements Describable<YandexTemplate> {
         if(needCreateCount > 0 && listInstancesResponse.getInstancesList().isEmpty()) {
             OperationOuterClass.Operation response = Api.createInstanceResponse(this, createVm());
             if(!response.getError().getMessage().isEmpty()){
-                throw new Exception("Error for create: " + response.getError().getMessage());
+                throw new YandexClientException("Error for create: " + response.getError().getMessage());
             }
         }
         return toSlave(tplInstance().get(0));

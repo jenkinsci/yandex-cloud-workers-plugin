@@ -76,7 +76,7 @@ public abstract class AbstractCloud extends Cloud {
      * Obtains a agent whose matches the given template, and that also has requiredLabel (if requiredLabel is non-null)
      * forceCreateNew specifies that the creation of a new agent is required. Otherwise, an existing matching agent may be re-used
      */
-    public YCAbstractSlave getNewOrExistingAvailableSlave(YandexTemplate t, int number, boolean forceCreateNew) {
+    public YCAbstractSlave getNewOrExistingAvailableSlave(YandexTemplate t, int number, boolean forceCreateNew) throws Exception {
         try {
             slaveCountingLock.lock();
             int possibleSlavesCount = 1;
@@ -96,7 +96,7 @@ public abstract class AbstractCloud extends Cloud {
                 return t.provision(number, provisionOptions);
             } catch (Exception e) {
                 LOGGER.log(Level.WARNING, t + ". Exception during provisioning", e);
-                return null;
+                throw e;
             }
         } finally { slaveCountingLock.unlock(); }
     }
