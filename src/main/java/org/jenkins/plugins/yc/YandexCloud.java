@@ -2,6 +2,7 @@ package org.jenkins.plugins.yc;
 
 import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
+import com.cloudbees.plugins.credentials.CredentialsNameComparator;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import hudson.Extension;
@@ -29,6 +30,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class YandexCloud extends AbstractCloud {
 
@@ -132,25 +134,29 @@ public class YandexCloud extends AbstractCloud {
         }
 
         @RequirePOST
-        public ListBoxModel doFillSshKeysCredentialsIdItems(@AncestorInPath ItemGroup context, @QueryParameter String sshKeysCredentialsId) {
+        public ListBoxModel doFillSshKeysCredentialsIdItems(@AncestorInPath ItemGroup context) {
             Jenkins.get().checkPermission(Jenkins.ADMINISTER);
-            return new StandardListBoxModel()
-                    .includeMatchingAs(Jenkins.getAuthentication(), context, SSHUserPrivateKey.class, Collections.emptyList(), CredentialsMatchers.always())
-                    .includeMatchingAs(ACL.SYSTEM, context, SSHUserPrivateKey.class, Collections.emptyList(), CredentialsMatchers.always())
-                    .includeCurrentValue(sshKeysCredentialsId);
+            return CredentialsProvider.lookupCredentials(SSHUserPrivateKey.class,
+                            context,
+                            ACL.SYSTEM,
+                            Collections.emptyList()).stream()
+                    .filter(CredentialsMatchers.always()::matches)
+                    .sorted(new CredentialsNameComparator())
+                    .map(c -> new ListBoxModel.Option(c.getId(), c.getId()))
+                    .collect(Collectors.toCollection(StandardListBoxModel::new)).includeEmptyValue();
         }
 
         @RequirePOST
         public ListBoxModel doFillCredentialsIdItems(@AncestorInPath ItemGroup context) {
             Jenkins.get().checkPermission(Jenkins.ADMINISTER);
-            return new StandardListBoxModel()
-                    .includeEmptyValue()
-                    .withMatching(
-                            CredentialsMatchers.always(),
-                            CredentialsProvider.lookupCredentials(FileCredentialsImpl.class,
-                                    context,
-                                    ACL.SYSTEM,
-                                    Collections.emptyList()));
+            return CredentialsProvider.lookupCredentials(FileCredentialsImpl.class,
+                            context,
+                            ACL.SYSTEM,
+                            Collections.emptyList()).stream()
+                    .filter(CredentialsMatchers.always()::matches)
+                    .sorted(new CredentialsNameComparator())
+                    .map(c -> new ListBoxModel.Option(c.getId(), c.getId()))
+                    .collect(Collectors.toCollection(StandardListBoxModel::new)).includeEmptyValue();
         }
 
 

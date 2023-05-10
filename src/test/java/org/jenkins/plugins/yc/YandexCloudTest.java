@@ -140,7 +140,7 @@ public class YandexCloudTest {
         YandexCloud actual = j.jenkins.clouds.get(YandexCloud.class);
         YandexCloud.YandexDescriptor descriptor = (YandexCloud.YandexDescriptor) actual.getDescriptor();
         assertNotNull(descriptor);
-        ListBoxModel m = descriptor.doFillSshKeysCredentialsIdItems(Jenkins.get(), "");
+        ListBoxModel m = descriptor.doFillSshKeysCredentialsIdItems(Jenkins.get());
         assertThat(m.size(), is(1));
         BasicSSHUserPrivateKey sshKeyCredentials = new BasicSSHUserPrivateKey(CredentialsScope.SYSTEM, "ghi", "key",
                 new BasicSSHUserPrivateKey.DirectEntryPrivateKeySource("somekey"), "", "");
@@ -150,7 +150,7 @@ public class YandexCloudTest {
             }
         }
         //Ensure added credential is displayed
-        m = descriptor.doFillSshKeysCredentialsIdItems(Jenkins.get(), "");
+        m = descriptor.doFillSshKeysCredentialsIdItems(Jenkins.get());
         assertThat(m.size(), is(2));
         //Ensure that the cloud can resolve the new key
         assertThat(actual.resolvePrivateKey(), notNullValue());
