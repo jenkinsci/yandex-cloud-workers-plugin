@@ -17,7 +17,6 @@ public abstract class YCAgentConfig {
     final Node.Mode mode;
     final String initScript;
     final List<? extends NodeProperty<?>> nodeProperties;
-    final String remoteAdmin;
     final List<YCTag> tags;
     final String cloudName;
     final String idleTerminationMinutes;
@@ -32,7 +31,6 @@ public abstract class YCAgentConfig {
         this.mode = builder.mode;
         this.initScript = builder.initScript;
         this.nodeProperties = builder.nodeProperties;
-        this.remoteAdmin = builder.remoteAdmin;
         this.idleTerminationMinutes = builder.idleTerminationMinutes;
         this.tags = builder.tags;
         this.cloudName = builder.cloudName;
@@ -61,7 +59,6 @@ public abstract class YCAgentConfig {
         private Node.Mode mode;
         private String initScript;
         private List<? extends NodeProperty<?>> nodeProperties;
-        private String remoteAdmin;
         private String idleTerminationMinutes;
         private List<YCTag> tags;
         private String cloudName;
@@ -101,11 +98,6 @@ public abstract class YCAgentConfig {
 
         public List<? extends NodeProperty<?>> getNodeProperties() {
             return nodeProperties;
-        }
-
-        public B withRemoteAdmin(String remoteAdmin) {
-            this.remoteAdmin = remoteAdmin;
-            return self();
         }
 
         public B withTags(List<YCTag> tags) {

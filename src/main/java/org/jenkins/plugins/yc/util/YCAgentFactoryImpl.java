@@ -17,8 +17,7 @@ public class YCAgentFactoryImpl implements YCAgentFactory {
                 config.description, config.remoteFS, config.labelString,
                 config.cloudName, config.idleTerminationMinutes,
                 config.initScript, config.tmpDir,
-                config.remoteAdmin, config.nodeProperties,
-                config.launchTimeout, config.stopOnTerminate,
-                config.numExecutors);
+                config.nodeProperties, config.launchTimeout,
+                config.stopOnTerminate, config.numExecutors);
     }
 }

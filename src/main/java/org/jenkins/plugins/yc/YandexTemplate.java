@@ -66,7 +66,6 @@ public class YandexTemplate implements Describable<YandexTemplate> {
     private final Node.Mode mode;
     private final String labels;
     private final String initScript;
-    private final String remoteAdmin;
 
     private final String idleTerminationMinutes;
 
@@ -94,16 +93,14 @@ public class YandexTemplate implements Describable<YandexTemplate> {
     @DataBoundConstructor
     public YandexTemplate(String vmName, String initVMTemplate, String description, Node.Mode mode,
                           String labels, String initScript, String remoteFS, String tmpDir,
-                          String remoteAdmin, String idleTerminationMinutes,
-                          boolean stopOnTerminate, List<YCTag> tags,
-                          int numExecutors) {
+                          String idleTerminationMinutes, boolean stopOnTerminate,
+                          List<YCTag> tags, int numExecutors) {
         this.vmName = vmName;
         this.initVMTemplate = initVMTemplate;
         this.labels = Util.fixNull(labels);
         this.description = description;
         this.mode = mode;
         this.initScript = initScript;
-        this.remoteAdmin = remoteAdmin;
         this.remoteFS = remoteFS == null || remoteFS.isEmpty() ? "/tmp/hudson" : remoteFS;
         this.tmpDir = tmpDir == null || tmpDir.isEmpty() ? "/tmp" : tmpDir;
         this.idleTerminationMinutes = idleTerminationMinutes;
@@ -171,10 +168,6 @@ public class YandexTemplate implements Describable<YandexTemplate> {
 
     public String getInitScript() {
         return initScript;
-    }
-
-    public String getRemoteAdmin() {
-        return remoteAdmin;
     }
 
     public String getIdleTerminationMinutes() {
@@ -254,7 +247,6 @@ public class YandexTemplate implements Describable<YandexTemplate> {
                 .withCloudName(parent.name)
                 .withLabelString(labels)
                 .withInitScript(initScript)
-                .withRemoteAdmin(remoteAdmin)
                 .withStopOnTerminate(stopOnTerminate)
                 .withIdleTerminationMinutes(idleTerminationMinutes)
                 .withLaunchTimeout(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
@@ -322,7 +314,6 @@ public class YandexTemplate implements Describable<YandexTemplate> {
         if (j != null) {
             j.checkPermission(Jenkins.ADMINISTER);
         }
-        String remote = remoteAdmin == null || remoteAdmin.isEmpty() ? "root" : remoteAdmin;
         YCPrivateKey privateKey =  this.getParent().resolvePrivateKey();
         if(privateKey == null){
             throw new YandexClientException("Failed get ssh key");
@@ -333,7 +324,7 @@ public class YandexTemplate implements Describable<YandexTemplate> {
                 .setName(this.getVmName())
                 .setZoneId("ru-central1-b")
                 .setFolderId(parent.getFolderId())
-                .putMetadata("user-data", String.format(userData, remote, privateKey.getPublicFingerprint() + "= " + remote))
+                .putMetadata("user-data", String.format(userData, privateKey.getUserName(), privateKey.getPublicFingerprint() + "= " + privateKey.getUserName()))
                 .build();
     }
 

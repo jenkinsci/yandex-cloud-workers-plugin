@@ -120,12 +120,12 @@ public class YandexCloudTest {
         j.jenkins.clouds.clear();
         List<YandexTemplate> yandexTemplateList = new ArrayList<>();
         yandexTemplateList.add(new YandexTemplate("testVm", "", "descr", Node.Mode.NORMAL, "testLabels",
-                null, "/tmp/hadson", "/tmp", "test", null, false, null, 0));
+                null, "/tmp/hadson", "/tmp",  null, false, null, 0));
         YandexCloud yandexCloud = new YandexCloud("testCloud", yandexTemplateList, credId, credId, credId, 300000);
         mockedCloud = Mockito.spy(yandexCloud);
         mockedYandexTemplate = Mockito.spy(mockedCloud.getTemplates().get(0));
         when(mockedYandexTemplate.getParent()).thenReturn(mockedCloud);
-        when(mockedCloud.resolvePrivateKey()).thenReturn(new YCPrivateKey(privateKey));
+        when(mockedCloud.resolvePrivateKey()).thenReturn(new YCPrivateKey(privateKey, "test"));
         when(mockedYandexTemplate.getInitVMTemplate()).thenReturn(template);
         j.jenkins.clouds.add(mockedCloud);
     }

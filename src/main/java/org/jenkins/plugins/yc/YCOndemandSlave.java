@@ -24,12 +24,12 @@ public class YCOndemandSlave extends YCAbstractSlave {
     public YCOndemandSlave(String name, String instanceId, String templateDescription,
                            String remoteFS, int numExecutors, String labelString, ComputerLauncher launcher,
                            Node.Mode mode, String initScript,
-                           String tmpDir, List<? extends NodeProperty<?>> nodeProperties, String remoteAdmin,
+                           String tmpDir, List<? extends NodeProperty<?>> nodeProperties,
                            boolean stopOnTerminate, String idleTerminationMinutes,
                            List<YCTag> tags, String cloudName, long launchTimeout)
             throws FormException, IOException {
 
-        super(name, instanceId, templateDescription, remoteFS, numExecutors, mode, labelString, launcher, new YandexRetentionStrategy(idleTerminationMinutes), initScript, tmpDir, nodeProperties, remoteAdmin, stopOnTerminate, idleTerminationMinutes, tags, cloudName, launchTimeout);
+        super(name, instanceId, templateDescription, remoteFS, numExecutors, mode, labelString, launcher, new YandexRetentionStrategy(idleTerminationMinutes), initScript, tmpDir, nodeProperties, stopOnTerminate, idleTerminationMinutes, tags, cloudName, launchTimeout);
     }
 
     /**
@@ -39,17 +39,17 @@ public class YCOndemandSlave extends YCAbstractSlave {
     @Deprecated
     public YCOndemandSlave(String instanceId) throws FormException, IOException {
 
-        this(instanceId, instanceId, "debug", "/tmp/hudson", 1, "debug", new YCUnixComputerLauncher(), Mode.NORMAL, "", "/tmp", Collections.emptyList(), null, false, null, null, "debug", 0);
+        this(instanceId, instanceId, "debug", "/tmp/hudson", 1, "debug", new YCUnixComputerLauncher(), Mode.NORMAL, "", "/tmp", Collections.emptyList(), false, null, null, "debug", 0);
     }
 
     public YCOndemandSlave(String name, String instanceId,
                            String description, String remoteFS,
                            String labelString, String cloudName,
                            String idleTerminationMinutes, String initScript,
-                           String tmpDir, String remoteAdmin, List<? extends NodeProperty<?>> nodeProperties,
+                           String tmpDir, List<? extends NodeProperty<?>> nodeProperties,
                            long launchTimeOut, boolean stopOnTerminate,
                            int numExecutors) throws FormException, IOException {
-        this(name, instanceId, description, remoteFS, numExecutors, labelString, new YCUnixComputerLauncher(), Mode.NORMAL, initScript, tmpDir, nodeProperties, remoteAdmin, stopOnTerminate, idleTerminationMinutes, null, cloudName,  launchTimeOut);
+        this(name, instanceId, description, remoteFS, numExecutors, labelString, new YCUnixComputerLauncher(), Mode.NORMAL, initScript, tmpDir, nodeProperties, stopOnTerminate, idleTerminationMinutes, null, cloudName,  launchTimeOut);
     }
 
     @Override

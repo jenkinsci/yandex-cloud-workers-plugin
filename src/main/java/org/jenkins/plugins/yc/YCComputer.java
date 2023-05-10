@@ -68,35 +68,9 @@ public class YCComputer extends SlaveComputer {
         return new HttpRedirect("..");
     }
 
-    /**
-     * What username to use to run root-like commands
-     *
-     * @return remote admin or {@code null} if the associated {@link Node} is {@code null}
-     */
-    @CheckForNull
-    public String getRemoteAdmin() {
-        YCAbstractSlave node = getNode();
-        return node == null ? null : node.getRemoteAdmin();
-    }
-
     public int getSshPort() {
         YCAbstractSlave node = getNode();
         return node == null ? 22 : node.getSshPort();
-    }
-
-    public String getRootCommandPrefix() {
-        YCAbstractSlave node = getNode();
-        return node == null ? "" : node.getRootCommandPrefix();
-    }
-
-    public String getSlaveCommandPrefix() {
-        YCAbstractSlave node = getNode();
-        return node == null ? "" : node.getSlaveCommandPrefix();
-    }
-
-    public String getSlaveCommandSuffix() {
-        YCAbstractSlave node = getNode();
-        return node == null ? "" : node.getSlaveCommandSuffix();
     }
 
     public void onConnected() {

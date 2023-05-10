@@ -55,7 +55,7 @@ public class PrivateKeyTest {
                 "JwhmdjVjlbf1mmhUVttRyaHlehlwk/ws15PfA6/77mDmL/klDuqOfZOhaYpqHey8\n" +
                 "Wa7hVHtTvb3sCErQF7RyIinYlclXoz5DHCcPYqUf/Nl1ctKPSNku906K7vAYDE1f\n" +
                 "vFGyjltEJ8OI8dFY/p0XpkhvIPcX0j74Has1FLb0e9QiPCyaW+68vQ==\n" +
-                "-----END RSA PRIVATE KEY-----\n");
+                "-----END RSA PRIVATE KEY-----\n", "test");
     }
 
     @Test

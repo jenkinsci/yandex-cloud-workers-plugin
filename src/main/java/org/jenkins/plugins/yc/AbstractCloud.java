@@ -214,7 +214,7 @@ public abstract class AbstractCloud extends Cloud {
         if (sshKeysCredentialsId != null) {
             SSHUserPrivateKey privateKeyCredential = getSshCredential(sshKeysCredentialsId);
             if (privateKeyCredential != null) {
-                return new YCPrivateKey(privateKeyCredential.getPrivateKey());
+                return new YCPrivateKey(privateKeyCredential.getPrivateKey(), privateKeyCredential.getUsername());
             }
         }
         return null;

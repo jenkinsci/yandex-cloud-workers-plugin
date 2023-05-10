@@ -12,7 +12,6 @@ import hudson.remoting.Channel;
 import jenkins.model.Jenkins;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.jenkins.plugins.yc.exception.LaunchScriptException;
 import org.jenkins.plugins.yc.exception.YandexClientException;
 
 import java.io.IOException;
@@ -34,7 +33,7 @@ public class YCUnixComputerLauncher extends YCComputerLauncher{
     @Override
     protected boolean launchScript(YCComputer computer, TaskListener listener) throws IOException {
         final Connection conn;
-        Connection cleanupConn = null; // java's code path analysis for final doesn't work that well.
+        Connection cleanupConn = null;
         boolean successful = false;
         PrintStream logger = listener.getLogger();
         YCAbstractSlave node = computer.getNode();
@@ -49,17 +48,21 @@ public class YCUnixComputerLauncher extends YCComputerLauncher{
         }
 
         LOGGER.log(Level.INFO, String.format("Launch instance with id: %s", node.getInstanceId()));
-
+        YCPrivateKey ycPrivateKey = computer.getCloud().resolvePrivateKey();
         try{
             boolean isBootstrapped = bootstrap(computer, listener, template);
             if (isBootstrapped) {
-                LOGGER.log(Level.INFO, "connect fresh as " + computer.getRemoteAdmin());
-                cleanupConn = connectToSsh(computer, listener);
-                YCPrivateKey ycPrivateKey = computer.getCloud().resolvePrivateKey();
-                if (ycPrivateKey == null || !cleanupConn.authenticateWithPublicKey(computer.getRemoteAdmin(),
-                        ycPrivateKey.getPrivateKey().toCharArray(), "")) {
-                    LOGGER.log(Level.WARNING,  "Authentication failed");
-                    return false; // failed to connect as root.
+                if(ycPrivateKey != null) {
+                    LOGGER.log(Level.INFO, "connect fresh as " + ycPrivateKey.getUserName());
+                    cleanupConn = connectToSsh(computer, listener);
+                    if (!cleanupConn.authenticateWithPublicKey(ycPrivateKey.getUserName(),
+                            ycPrivateKey.getPrivateKey().toCharArray(), "")) {
+                        LOGGER.log(Level.WARNING, "Authentication failed");
+                        return false;
+                    }
+                }else{
+                    LOGGER.log(Level.WARNING, "Authentication failed");
+                    return false;
                 }
             } else {
                 LOGGER.log(Level.WARNING, "Bootstrap result failed");
@@ -76,35 +79,24 @@ public class YCUnixComputerLauncher extends YCComputerLauncher{
                 LOGGER.log(Level.INFO, "Executing init script");
                 scp.put(initScript.getBytes("UTF-8"), "init.sh", tmpDir, "0700");
                 Session sess = conn.openSession();
-                sess.requestDumbPTY(); // so that the remote side bundles stdout
-                // and stderr
-                sess.execCommand(buildUpCommand(computer, tmpDir + "/init.sh"));
-
-                sess.getStdin().close(); // nothing to write here
-                sess.getStderr().close(); // we are not supposed to get anything
-                // from stderr
+                sess.requestDumbPTY();
+                sess.execCommand(buildUpCommand(tmpDir + "/init.sh"));
+                sess.getStdin().close();
+                sess.getStderr().close();
                 IOUtils.copy(sess.getStdout(), logger);
-
                 int exitStatus = waitCompletion(sess);
                 if (exitStatus != 0) {
                     LOGGER.log(Level.WARNING, "init script failed: exit code=" + exitStatus);
                     return false;
                 }
                 sess.close();
-
                 LOGGER.log(Level.INFO, "Creating ~/.hudson-run-init");
-
-                // Needs a tty to run sudo.
                 sess = conn.openSession();
-                sess.requestDumbPTY(); // so that the remote side bundles stdout
-                // and stderr
-                sess.execCommand(buildUpCommand(computer, "touch ~/.hudson-run-init"));
-
-                sess.getStdin().close(); // nothing to write here
-                sess.getStderr().close(); // we are not supposed to get anything
-                // from stderr
+                sess.requestDumbPTY();
+                sess.execCommand(buildUpCommand("touch ~/.hudson-run-init"));
+                sess.getStdin().close();
+                sess.getStderr().close();
                 IOUtils.copy(sess.getStdout(), logger);
-
                 exitStatus = waitCompletion(sess);
                 if (exitStatus != 0) {
                     LOGGER.log(Level.WARNING, "init script failed: exit code=" + exitStatus);
@@ -120,11 +112,9 @@ public class YCUnixComputerLauncher extends YCComputerLauncher{
             String javaAddOpens = "java --add-opens java.base/java.util=ALL-UNNAMED";
             javaOpens.execCommand(javaAddOpens);
             javaOpens.close();
-            final String prefix = computer.getSlaveCommandPrefix();
-            final String suffix = computer.getSlaveCommandSuffix();
             final String remoteFS = node.getRemoteFS();
             final String workDir = Util.fixEmptyAndTrim(remoteFS) != null ? remoteFS : tmpDir;
-            String launchString = prefix + " java " + " -jar " + tmpDir + "/remoting.jar -workDir " + workDir + suffix;
+            String launchString = "java -jar " + tmpDir + "/remoting.jar -workDir " + workDir;
             LOGGER.log(Level.INFO, "Launching remoting agent (via Trilead SSH2 Connection): " + launchString);
             final Session sess = conn.openSession();
             sess.execCommand(launchString);
@@ -162,10 +152,10 @@ public class YCUnixComputerLauncher extends YCComputerLauncher{
                 return false;
             }
             while (tries-- > 0) {
-                LOGGER.log(Level.INFO, String.format("Authenticating as " + computer.getRemoteAdmin()));
+                LOGGER.log(Level.INFO, String.format("Authenticating as " + ycPrivateKey.getUserName()));
                 try {
                     bootstrapConn = connectToSsh(computer, listener);
-                    isAuthenticated = bootstrapConn.authenticateWithPublicKey(computer.getRemoteAdmin(),
+                    isAuthenticated = bootstrapConn.authenticateWithPublicKey(ycPrivateKey.getUserName(),
                             ycPrivateKey.getPrivateKey().toCharArray(),
                             "");
                 } catch (IOException e) {
@@ -259,12 +249,8 @@ public class YCUnixComputerLauncher extends YCComputerLauncher{
         }
     }
 
-    protected String buildUpCommand(YCComputer computer, String command) {
-        String remoteAdmin = computer.getRemoteAdmin();
-        if (remoteAdmin != null && !remoteAdmin.equals("root")) {
-            command = computer.getRootCommandPrefix() + " " + command;
-        }
-        return command;
+    protected String buildUpCommand(String command) {
+        return "sudo " + command;
     }
 
     private int waitCompletion(Session session) throws InterruptedException {

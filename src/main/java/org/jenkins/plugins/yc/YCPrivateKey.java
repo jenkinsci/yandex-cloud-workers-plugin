@@ -14,13 +14,19 @@ import java.security.UnrecoverableKeyException;
 public class YCPrivateKey {
 
     private final Secret privateKey;
+    private String userName;
 
-    public YCPrivateKey(String privateKey) {
+    public YCPrivateKey(String privateKey, String userName) {
         this.privateKey = Secret.fromString(privateKey.trim());
+        this.userName = userName;
     }
 
     public String getPrivateKey() {
         return privateKey.getPlainText();
+    }
+
+    public String getUserName() {
+        return userName;
     }
 
     @SuppressWarnings("unused") // used by config-entries.jelly

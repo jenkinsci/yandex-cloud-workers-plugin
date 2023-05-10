@@ -19,7 +19,7 @@ public class YCOnDemandSlaveTest {
                 "description", "remoteFS",
                 1, "labelString", new YCUnixComputerLauncher(), Node.Mode.NORMAL,
                 "initScript", "tmpDir",
-                Collections.emptyList(), "remoteAdmin",
+                Collections.emptyList(),
                 false, "30", Collections.emptyList(),
                 "cloudName",  0);
         assertEquals(Node.Mode.NORMAL, slaveNormal.getMode());
@@ -28,7 +28,7 @@ public class YCOnDemandSlaveTest {
                 "description", "remoteFS",
                 1, "labelString", new YCUnixComputerLauncher(), Node.Mode.EXCLUSIVE,
                 "initScript", "tmpDir", Collections.emptyList(),
-                "remoteAdmin", false, "30",
+                false, "30",
                 Collections.emptyList(), "cloudName",
                 0);
 

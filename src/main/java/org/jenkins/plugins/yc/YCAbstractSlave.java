@@ -32,8 +32,6 @@ public abstract class YCAbstractSlave extends Slave {
 
     private final String initScript;
     private final String tmpDir;
-    private final String remoteAdmin; // e.g. 'ubuntu'
-
     private final String templateDescription;
 
     private boolean stopOnTerminate;
@@ -42,10 +40,6 @@ public abstract class YCAbstractSlave extends Slave {
     private boolean isConnected = false;
     private List<YCTag> tags;
     private final String cloudName;
-
-    private transient String slaveCommandPrefix;
-
-    private transient String slaveCommandSuffix;
 
     /* The last instance data to be fetched for the agent */
     protected transient InstanceOuterClass.Instance lastFetchInstance = null;
@@ -63,7 +57,7 @@ public abstract class YCAbstractSlave extends Slave {
 
     public YCAbstractSlave(String name, String instanceId, String templateDescription, String remoteFS, int numExecutors,
                            Mode mode, String labelString, ComputerLauncher launcher, RetentionStrategy<YCComputer> retentionStrategy,
-                           String initScript, String tmpDir, List<? extends NodeProperty<?>> nodeProperties, String remoteAdmin,
+                           String initScript, String tmpDir, List<? extends NodeProperty<?>> nodeProperties,
                            boolean stopOnTerminate, String idleTerminationMinutes, List<YCTag> tags, String cloudName,
                            long launchTimeout)
             throws FormException, IOException {
@@ -78,7 +72,6 @@ public abstract class YCAbstractSlave extends Slave {
         this.templateDescription = templateDescription;
         this.initScript = initScript;
         this.tmpDir = tmpDir;
-        this.remoteAdmin = remoteAdmin;
         this.stopOnTerminate = stopOnTerminate;
         this.idleTerminationMinutes = idleTerminationMinutes;
         this.tags = tags;
@@ -174,31 +167,6 @@ public abstract class YCAbstractSlave extends Slave {
     public long getLaunchTimeoutInMillis() {
         // this should be fine as long as launchTimeout remains an int type
         return launchTimeout * 1000L;
-    }
-
-    public String getRemoteAdmin() {
-        if (StringUtils.isBlank(remoteAdmin)) {
-            return "root";
-        }
-        return remoteAdmin;
-    }
-
-    public String getRootCommandPrefix() {
-        return "";
-    }
-
-    public String getSlaveCommandPrefix() {
-        if (StringUtils.isEmpty(slaveCommandPrefix)) {
-            return "";
-        }
-        return slaveCommandPrefix + " ";
-    }
-
-    public String getSlaveCommandSuffix() {
-        if (StringUtils.isEmpty(slaveCommandSuffix)) {
-            return "";
-        }
-        return " " + slaveCommandSuffix;
     }
 
     public int getSshPort() {
