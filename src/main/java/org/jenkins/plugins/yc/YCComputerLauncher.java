@@ -1,5 +1,6 @@
 package org.jenkins.plugins.yc;
 
+import hudson.model.Queue;
 import hudson.model.TaskListener;
 import hudson.slaves.ComputerLauncher;
 import hudson.slaves.OfflineCause;
@@ -9,6 +10,9 @@ import org.jvnet.localizer.Localizable;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static org.jenkins.plugins.yc.util.CloudUtil.cancelItem;
+import static org.jenkins.plugins.yc.util.CloudUtil.getItem;
 
 
 public abstract class YCComputerLauncher extends ComputerLauncher {
@@ -31,7 +35,8 @@ public abstract class YCComputerLauncher extends ComputerLauncher {
                     if(computer != null) {
                         computer.setTemporarilyOffline(true, OfflineCause.create(cleanUpReason));
                     }
-                    //ycAbstractSlave.terminate();
+                    Queue.Item item = getItem(ycAbstractSlave.getLabelString());
+                    cancelItem(item, ycAbstractSlave.getLabelString());
                 }
             }
         }
