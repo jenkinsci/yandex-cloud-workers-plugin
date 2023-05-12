@@ -161,9 +161,7 @@ public class YandexRetentionStrategy extends RetentionStrategy<YCComputer> imple
             }
             final long idleMilliseconds = this.clock.millis() - computer.getIdleStartMilliseconds();
             if (idleTerminationMinutes > 0) {
-                // TODO: really think about the right strategy here, see  JENKINS-23792
                 if (idleMilliseconds > TimeUnit.MINUTES.toMillis(idleTerminationMinutes)) {
-
                     LOGGER.log(Level.INFO, "Idle timeout of " + computer.getName() + " after "
                             + TimeUnit.MILLISECONDS.toMinutes(idleMilliseconds) +
                             " idle minutes, instance status" + state);
