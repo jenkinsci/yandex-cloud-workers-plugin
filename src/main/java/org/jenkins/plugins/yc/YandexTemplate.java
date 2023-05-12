@@ -322,8 +322,6 @@ public class YandexTemplate implements Describable<YandexTemplate> {
         TextFormat.merge(this.getInitVMTemplate(), builder);
         return builder
                 .setName(this.getVmName())
-                .setZoneId("ru-central1-b")
-                .setFolderId(parent.getFolderId())
                 .putMetadata("user-data", String.format(userData, privateKey.getUserName(), privateKey.getPublicFingerprint() + "= " + privateKey.getUserName()))
                 .build();
     }
