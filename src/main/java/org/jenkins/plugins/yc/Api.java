@@ -34,9 +34,9 @@ public class Api {
         return null;
     }
 
-    public static InstanceServiceOuterClass.ListInstancesResponse getFilterInstanceResponse(YandexTemplate template) throws Exception {
+    public static InstanceServiceOuterClass.ListInstancesResponse getFilterInstanceResponse(YandexTemplate template, String folderId) throws Exception {
         return template.getInstanceServiceBlockingStub().list(InstanceServiceOuterClass.ListInstancesRequest.newBuilder()
-                .setFolderId(template.parent.getFolderId())
+                .setFolderId(folderId)
                 .setFilter("name=\"".concat(template.getVmName()).concat("\""))
                 .build());
     }

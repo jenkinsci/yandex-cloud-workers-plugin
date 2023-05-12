@@ -121,7 +121,7 @@ public class YandexCloudTest {
         List<YandexTemplate> yandexTemplateList = new ArrayList<>();
         yandexTemplateList.add(new YandexTemplate("testVm", "", "descr", Node.Mode.NORMAL, "testLabels",
                 null, "/tmp/hadson", "/tmp",  null, false, null, 0));
-        YandexCloud yandexCloud = new YandexCloud("testCloud", yandexTemplateList, credId, credId, credId, 300000);
+        YandexCloud yandexCloud = new YandexCloud("testCloud", yandexTemplateList, credId, credId, 300000);
         mockedCloud = Mockito.spy(yandexCloud);
         mockedYandexTemplate = Mockito.spy(mockedCloud.getTemplates().get(0));
         when(mockedYandexTemplate.getParent()).thenReturn(mockedCloud);

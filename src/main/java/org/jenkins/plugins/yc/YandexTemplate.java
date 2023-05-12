@@ -203,7 +203,8 @@ public class YandexTemplate implements Describable<YandexTemplate> {
     }
 
     private YCAbstractSlave provisionOnDemand(int number, EnumSet<ProvisionOptions> provisionOptions) throws Exception {
-        List<InstanceOuterClass.Instance> orphans = findOrphansOrStopInstance(tplInstance(), number);
+        InstanceServiceOuterClass.CreateInstanceRequest createInstanceRequest = createVm();
+        List<InstanceOuterClass.Instance> orphans = findOrphansOrStopInstance(tplInstance(createInstanceRequest), number);
         if (orphans.isEmpty() && !provisionOptions.contains(ProvisionOptions.FORCE_CREATE) &&
                 !provisionOptions.contains(ProvisionOptions.ALLOW_CREATE)) {
             logProvisionInfo("No existing instance found - but cannot create new instance");
@@ -214,14 +215,14 @@ public class YandexTemplate implements Describable<YandexTemplate> {
             return toSlave(orphans.get(0));
         }
         int needCreateCount = number - orphans.size();
-        InstanceServiceOuterClass.ListInstancesResponse listInstancesResponse = Api.getFilterInstanceResponse(this);
+        InstanceServiceOuterClass.ListInstancesResponse listInstancesResponse = Api.getFilterInstanceResponse(this, createInstanceRequest.getFolderId());
         if(needCreateCount > 0 && listInstancesResponse.getInstancesList().isEmpty()) {
-            OperationOuterClass.Operation response = Api.createInstanceResponse(this, createVm());
+            OperationOuterClass.Operation response = Api.createInstanceResponse(this, createInstanceRequest);
             if(!response.getError().getMessage().isEmpty()){
                 throw new YandexClientException("Error for create: " + response.getError().getMessage());
             }
         }
-        return toSlave(tplInstance().get(0));
+        return toSlave(tplInstance(createInstanceRequest).get(0));
     }
 
     private void logProvisionInfo(String message) {
@@ -286,8 +287,8 @@ public class YandexTemplate implements Describable<YandexTemplate> {
         return true;
     }
 
-    private List<InstanceOuterClass.Instance> tplInstance() throws Exception {
-        InstanceServiceOuterClass.ListInstancesResponse listInstancesResponse = Api.getFilterInstanceResponse(this);
+    private List<InstanceOuterClass.Instance> tplInstance(InstanceServiceOuterClass.CreateInstanceRequest createInstanceRequest) throws Exception {
+        InstanceServiceOuterClass.ListInstancesResponse listInstancesResponse = Api.getFilterInstanceResponse(this, createInstanceRequest.getFolderId());
         return listInstancesResponse.getInstancesList();
     }
 

@@ -48,7 +48,6 @@ public abstract class AbstractCloud extends Cloud {
     private final List<? extends YandexTemplate> templates;
     private transient ReentrantLock slaveCountingLock = new ReentrantLock();
     private final String credentialsId;
-    private final String folderId;
     private final int authSleepMs;
 
     @CheckForNull
@@ -57,11 +56,10 @@ public abstract class AbstractCloud extends Cloud {
 
     protected AbstractCloud(String name,
                             List<? extends YandexTemplate> templates, String credentialsId,
-                            String folderId, String sshKeysCredentialsId, int authSleepMs) {
+                            String sshKeysCredentialsId, int authSleepMs) {
         super(name);
         this.templates = Objects.requireNonNullElse(templates, Collections.emptyList());
         this.credentialsId = credentialsId;
-        this.folderId = folderId;
         this.sshKeysCredentialsId = sshKeysCredentialsId;
         this.authSleepMs = authSleepMs != 0 ? authSleepMs : 300000;
         readResolve();
@@ -322,10 +320,6 @@ public abstract class AbstractCloud extends Cloud {
 
     public String getCredentialsId() {
         return credentialsId;
-    }
-
-    public String getFolderId() {
-        return folderId;
     }
 
     @CheckForNull

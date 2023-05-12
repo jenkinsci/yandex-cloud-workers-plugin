@@ -164,7 +164,7 @@ public class YandexRetentionStrategy extends RetentionStrategy<YCComputer> imple
                 if (idleMilliseconds > TimeUnit.MINUTES.toMillis(idleTerminationMinutes)) {
                     LOGGER.log(Level.INFO, "Idle timeout of " + computer.getName() + " after "
                             + TimeUnit.MILLISECONDS.toMinutes(idleMilliseconds) +
-                            " idle minutes, instance status" + state);
+                            " idle minutes, instance status: " + state);
                     YCAbstractSlave slaveNode = computer.getNode();
                     if (slaveNode != null) {
                         slaveNode.idleTimeout();
