@@ -204,11 +204,12 @@ public abstract class AbstractCloud extends Cloud {
         }
     }
 
-    protected void readResolve() {
+    protected Object readResolve() {
         this.slaveCountingLock = new ReentrantLock();
         for (YandexTemplate t : templates) {
             t.parent = this;
         }
+        return this;
     }
 
     @CheckForNull
