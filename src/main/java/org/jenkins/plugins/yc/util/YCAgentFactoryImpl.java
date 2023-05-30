@@ -13,11 +13,11 @@ public class YCAgentFactoryImpl implements YCAgentFactory {
     @Override
     public YCAbstractSlave createOnDemandAgent(YCAgentConfig.OnDemand config) throws Descriptor.FormException, IOException {
         return new YCOndemandSlave(
-                config.name, config.instanceId,
-                config.description, config.remoteFS, config.labelString,
-                config.cloudName, config.idleTerminationMinutes,
-                config.initScript, config.tmpDir,
-                config.nodeProperties, config.launchTimeout,
-                config.stopOnTerminate, config.numExecutors);
+                config.getName(), config.getInstanceId(),
+                config.getDescription(), config.getRemoteFS(), config.getLabelString(),
+                config.getCloudName(), config.getIdleTerminationMinutes(),
+                config.getInitScript(), config.getTmpDir(),
+                config.getNodeProperties(), config.getLaunchTimeout(),
+                config.isStopOnTerminate(), config.getNumExecutors());
     }
 }

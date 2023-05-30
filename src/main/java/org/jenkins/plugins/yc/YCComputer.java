@@ -46,14 +46,22 @@ public class YCComputer extends SlaveComputer {
 
 
     public InstanceOuterClass.Instance describeInstance() throws Exception {
-        if (ycInstanceDescription == null)
-            ycInstanceDescription = Api.getInstanceResponse(getInstanceId(), getSlaveTemplate());
+        if (ycInstanceDescription == null) {
+            YandexTemplate template = getSlaveTemplate();
+            if (template != null) {
+                ycInstanceDescription = template.getInstanceResponse(getInstanceId());
+            }
+        }
         return ycInstanceDescription;
     }
 
     public String getStatus() throws Exception {
-        ycInstanceDescription = Api.getInstanceResponse(getInstanceId(), getSlaveTemplate());
-        return ycInstanceDescription.getStatus().name();
+        YandexTemplate template = getSlaveTemplate();
+        if (template != null) {
+            ycInstanceDescription = template.getInstanceResponse(getInstanceId());
+            return ycInstanceDescription.getStatus().name();
+        }
+        return "Can't find slave template";
     }
 
     /**

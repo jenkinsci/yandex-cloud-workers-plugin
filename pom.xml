@@ -14,7 +14,7 @@
     <packaging>hpi</packaging>
 
 
-    <name>YC Plugin</name>
+    <name>Yandex Cloud Plugin</name>
     <description>This is a Jenkins plugin to support Yandex cloud</description>
     <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
 

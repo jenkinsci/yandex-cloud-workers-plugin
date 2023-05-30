@@ -2,7 +2,6 @@ package org.jenkins.plugins.yc.util;
 
 import hudson.model.Descriptor;
 import jenkins.model.Jenkins;
-import org.jenkins.plugins.yc.AbstractCloud;
 import org.jenkins.plugins.yc.YCAbstractSlave;
 
 import java.io.IOException;

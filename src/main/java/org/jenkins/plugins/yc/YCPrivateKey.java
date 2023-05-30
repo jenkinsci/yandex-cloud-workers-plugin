@@ -14,7 +14,7 @@ import java.security.UnrecoverableKeyException;
 public class YCPrivateKey {
 
     private final Secret privateKey;
-    private String userName;
+    private final String userName;
 
     public YCPrivateKey(String privateKey, String userName) {
         this.privateKey = Secret.fromString(privateKey.trim());
@@ -55,8 +55,9 @@ public class YCPrivateKey {
 
     @Override
     public boolean equals(Object that) {
-        if (that != null && this.getClass() == that.getClass())
+        if (that != null && this.getClass() == that.getClass()) {
             return this.privateKey.equals(((YCPrivateKey) that).privateKey);
+        }
         return false;
     }
 

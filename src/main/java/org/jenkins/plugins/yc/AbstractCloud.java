@@ -50,6 +50,8 @@ public abstract class AbstractCloud extends Cloud {
     private final String credentialsId;
     private final int authSleepMs;
 
+    private final int delayForRetry = 10000;
+
     @CheckForNull
     private final String sshKeysCredentialsId;
 
@@ -167,7 +169,7 @@ public abstract class AbstractCloud extends Cloud {
         @POST
         protected FormValidation doCheckSshKeysCredentialsId(@AncestorInPath ItemGroup context, String value) throws IOException {
             Jenkins.get().checkPermission(Jenkins.ADMINISTER);
-            if (value == null || value.isEmpty()){
+            if (value == null || value.isEmpty()) {
                 return FormValidation.error("No ssh credentials selected");
             }
             SSHUserPrivateKey sshCredential = getSshCredential(value);
@@ -187,28 +189,30 @@ public abstract class AbstractCloud extends Cloud {
                 if (line.equals("-----END RSA PRIVATE KEY-----")) {
                     hasEnd = true;
                 }
-                if(line.equals("-----BEGIN OPENSSH PRIVATE KEY-----")){
+                if(line.equals("-----BEGIN OPENSSH PRIVATE KEY-----")) {
                     return FormValidation.error("OPENSSH is a proprietary format. YC Integration requires the keys to be in PEM format");
                 }
             }
-            if (!hasStart)
+            if (!hasStart) {
                 return FormValidation.error("This doesn't look like a private key at all");
-            if (!hasEnd)
+            }
+            if (!hasEnd) {
                 return FormValidation
                         .error("The private key is missing the trailing 'END RSA PRIVATE KEY' marker. Copy&paste error?");
+            }
             return FormValidation.ok();
         }
     }
 
-    protected Object readResolve() {
+    protected void readResolve() {
         this.slaveCountingLock = new ReentrantLock();
-        for (YandexTemplate t : templates)
+        for (YandexTemplate t : templates) {
             t.parent = this;
-        return this;
+        }
     }
 
     @CheckForNull
-    public YCPrivateKey resolvePrivateKey(){
+    public YCPrivateKey resolvePrivateKey() {
         if (sshKeysCredentialsId != null) {
             SSHUserPrivateKey privateKeyCredential = getSshCredential(sshKeysCredentialsId);
             if (privateKeyCredential != null) {
@@ -219,7 +223,7 @@ public abstract class AbstractCloud extends Cloud {
     }
 
     @CheckForNull
-    private static SSHUserPrivateKey getSshCredential(String id){
+    private static SSHUserPrivateKey getSshCredential(String id) {
         SSHUserPrivateKey credential = CredentialsMatchers.firstOrNull(
                 CredentialsProvider.lookupCredentials(
                         SSHUserPrivateKey.class,
@@ -228,7 +232,7 @@ public abstract class AbstractCloud extends Cloud {
                         Collections.emptyList()),
                 CredentialsMatchers.withId(id));
 
-        if (credential == null){
+        if (credential == null) {
             LOGGER.log(Level.WARNING, "YC Plugin could not find the specified credentials ({0}) in the Jenkins Global Credentials Store, YC Plugin for cloud must be manually reconfigured", new String[]{id});
         }
 
@@ -251,6 +255,8 @@ public abstract class AbstractCloud extends Cloud {
 
     /**
      * Gets list of {@link YandexTemplate} that matches {@link Label}.
+     * @param label - required label
+     * @return template collections by label
      */
     public Collection<YandexTemplate> getTemplates(Label label) {
         List<YandexTemplate> matchingTemplates = new ArrayList<>();
@@ -277,7 +283,7 @@ public abstract class AbstractCloud extends Cloud {
                     public Node call() throws Exception {
                         while (true) {
                             String instanceId = slave.getInstanceId();
-                            InstanceOuterClass.Instance instance = Api.getInstanceResponse(instanceId, t);
+                            InstanceOuterClass.Instance instance = t.getInstanceResponse(instanceId);
                             if (instance == null) {
                                 LOGGER.log(Level.WARNING, "{0} Can't find instance with instance id `{1}` in cloud {2}. Terminate provisioning ",
                                         new Object[]{t, instanceId, slave.getCloudName()});
@@ -303,11 +309,11 @@ public abstract class AbstractCloud extends Cloud {
                                     return null;
                                 }
 
-                                LOGGER.log(Level.INFO, "Attempt {0}: {1}. Node {2} is neither pending, neither running, it''s {3}. Will try again after 10s",
+                                LOGGER.log(Level.INFO, "Attempt {0}: {1}. Node {2} is neither pending, neither running, it''s {3}. Will try again after " + delayForRetry + "s",
                                         new Object[]{retryCount, t, slave.getNodeName(), state});
                                 retryCount++;
                             }
-                            Thread.sleep(10000);
+                            Thread.sleep(delayForRetry);
                         }
                     }
                 })

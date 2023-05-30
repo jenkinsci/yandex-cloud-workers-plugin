@@ -2,27 +2,29 @@ package org.jenkins.plugins.yc.util;
 
 import hudson.model.Node;
 import hudson.slaves.NodeProperty;
+import lombok.Getter;
 import org.jenkins.plugins.yc.YCTag;
 
 import java.util.List;
 
+@Getter
 public abstract class YCAgentConfig {
-    final String name;
-    final String description;
+    private final String name;
+    private final String description;
 
-    final String remoteFS;
+    private final String remoteFS;
 
-    final String tmpDir;
-    final String labelString;
-    final Node.Mode mode;
-    final String initScript;
-    final List<? extends NodeProperty<?>> nodeProperties;
-    final List<YCTag> tags;
-    final String cloudName;
-    final String idleTerminationMinutes;
-    final long launchTimeout;
+    private final String tmpDir;
+    private final String labelString;
+    private final Node.Mode mode;
+    private final String initScript;
+    private final List<? extends NodeProperty<?>> nodeProperties;
+    private final List<YCTag> tags;
+    private final String cloudName;
+    private final String idleTerminationMinutes;
+    private final long launchTimeout;
 
-    final int numExecutors;
+    private final int numExecutors;
 
     private YCAgentConfig(Builder<? extends Builder, ? extends YCAgentConfig> builder) {
         this.name = builder.name;
@@ -40,10 +42,11 @@ public abstract class YCAgentConfig {
         this.tmpDir = builder.tmpDir;
     }
 
+    @Getter
     public static class OnDemand extends YCAgentConfig {
 
-        final String instanceId;
-        final boolean stopOnTerminate;
+        private final String instanceId;
+        private final boolean stopOnTerminate;
 
         private OnDemand(OnDemandBuilder builder) {
             super(builder);

@@ -1,6 +1,7 @@
 package org.jenkins.plugins.yc;
 
 import com.google.protobuf.TextFormat;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.Util;
 import hudson.model.Describable;
@@ -149,8 +150,9 @@ public class YandexTemplate implements Describable<YandexTemplate> {
     }
 
     public List<YCTag> getTags() {
-        if (null == tags)
+        if (null == tags) {
             return null;
+        }
         return Collections.unmodifiableList(tags);
     }
 
@@ -205,8 +207,8 @@ public class YandexTemplate implements Describable<YandexTemplate> {
     private YCAbstractSlave provisionOnDemand(int number, EnumSet<ProvisionOptions> provisionOptions) throws Exception {
         InstanceServiceOuterClass.CreateInstanceRequest createInstanceRequest = createVm();
         List<InstanceOuterClass.Instance> orphans = findOrphansOrStopInstance(tplInstance(createInstanceRequest), number);
-        if (orphans.isEmpty() && !provisionOptions.contains(ProvisionOptions.FORCE_CREATE) &&
-                !provisionOptions.contains(ProvisionOptions.ALLOW_CREATE)) {
+        if (orphans.isEmpty() && !provisionOptions.contains(ProvisionOptions.FORCE_CREATE)
+                && !provisionOptions.contains(ProvisionOptions.ALLOW_CREATE)) {
             logProvisionInfo("No existing instance found - but cannot create new instance");
             return null;
         }
@@ -215,10 +217,10 @@ public class YandexTemplate implements Describable<YandexTemplate> {
             return toSlave(orphans.get(0));
         }
         int needCreateCount = number - orphans.size();
-        InstanceServiceOuterClass.ListInstancesResponse listInstancesResponse = Api.getFilterInstanceResponse(this, createInstanceRequest.getFolderId());
-        if(needCreateCount > 0 && listInstancesResponse.getInstancesList().isEmpty()) {
-            OperationOuterClass.Operation response = Api.createInstanceResponse(this, createInstanceRequest);
-            if(!response.getError().getMessage().isEmpty()){
+        InstanceServiceOuterClass.ListInstancesResponse listInstancesResponse = getFilterInstanceResponse(createInstanceRequest.getFolderId());
+        if (needCreateCount > 0 && listInstancesResponse.getInstancesList().isEmpty()) {
+            OperationOuterClass.Operation response = createInstanceResponse(createInstanceRequest);
+            if (!response.getError().getMessage().isEmpty()) {
                 throw new YandexClientException("Error for create: " + response.getError().getMessage());
             }
         }
@@ -288,7 +290,7 @@ public class YandexTemplate implements Describable<YandexTemplate> {
     }
 
     private List<InstanceOuterClass.Instance> tplInstance(InstanceServiceOuterClass.CreateInstanceRequest createInstanceRequest) throws Exception {
-        InstanceServiceOuterClass.ListInstancesResponse listInstancesResponse = Api.getFilterInstanceResponse(this, createInstanceRequest.getFolderId());
+        InstanceServiceOuterClass.ListInstancesResponse listInstancesResponse = getFilterInstanceResponse(createInstanceRequest.getFolderId());
         return listInstancesResponse.getInstancesList();
     }
 
@@ -301,8 +303,8 @@ public class YandexTemplate implements Describable<YandexTemplate> {
         }
         try {
             if (!instances.isEmpty()) {
-                for(String instanceId : instances) {
-                    Api.startInstance(this, instanceId);
+                for (String instanceId : instances) {
+                    startInstance(instanceId);
                 }
             }
         } catch (Exception e) {
@@ -316,7 +318,7 @@ public class YandexTemplate implements Describable<YandexTemplate> {
             j.checkPermission(Jenkins.ADMINISTER);
         }
         YCPrivateKey privateKey =  this.getParent().resolvePrivateKey();
-        if(privateKey == null){
+        if (privateKey == null) {
             throw new YandexClientException("Failed get ssh key");
         }
         InstanceServiceOuterClass.CreateInstanceRequest.Builder builder = InstanceServiceOuterClass.CreateInstanceRequest.newBuilder();
@@ -329,10 +331,10 @@ public class YandexTemplate implements Describable<YandexTemplate> {
 
     public InstanceServiceGrpc.InstanceServiceBlockingStub getInstanceServiceBlockingStub() throws Exception {
         ServiceAccount serviceAccount = getCredentials(parent.getCredentialsId());
-        if(serviceAccount == null){
+        if (serviceAccount == null) {
             throw new LoginFailed("Failed find serviceAccount");
         }
-        if(provider == null || provider.get().getExpiresAt().isBefore(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant())) {
+        if (provider == null || provider.get().getExpiresAt().isBefore(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant())) {
             LOGGER.log(Level.WARNING, "Token null or expired. Generate new");
             closeChannel("iam".concat(ChannelFactory.DEFAULT_ENDPOINT));
             provider = Auth.apiKeyBuilder()
@@ -360,30 +362,68 @@ public class YandexTemplate implements Describable<YandexTemplate> {
         channel.awaitTermination(1, TimeUnit.MINUTES);
     }
 
+    public OperationOuterClass.Operation createInstanceResponse(InstanceServiceOuterClass.CreateInstanceRequest instanceRequest) throws Exception {
+        return this.getInstanceServiceBlockingStub().create(instanceRequest);
+    }
+
+    public void startInstance(String instanceId) throws Exception {
+        this.getInstanceServiceBlockingStub().start(InstanceServiceOuterClass.StartInstanceRequest.newBuilder()
+                .setInstanceId(instanceId)
+                .build());
+    }
+
+
+    public void stopInstance(String instanceId) throws Exception {
+        this.getInstanceServiceBlockingStub().stop(InstanceServiceOuterClass.StopInstanceRequest.newBuilder()
+                .setInstanceId(instanceId)
+                .build());
+    }
+
+    public InstanceOuterClass.Instance getInstanceResponse(String instanceId) throws Exception {
+        return this.getInstanceServiceBlockingStub().get(InstanceServiceOuterClass.GetInstanceRequest.newBuilder()
+                .setInstanceId(instanceId)
+                .build());
+    }
+
+    public InstanceServiceOuterClass.ListInstancesResponse getFilterInstanceResponse(String folderId) throws Exception {
+        return this.getInstanceServiceBlockingStub().list(InstanceServiceOuterClass.ListInstancesRequest.newBuilder()
+                .setFolderId(folderId)
+                .setFilter("name=\"".concat(this.getVmName()).concat("\""))
+                .build());
+    }
+
+
+    public void deleteInstanceResponse(String instanceId) throws Exception {
+        this.getInstanceServiceBlockingStub().delete(InstanceServiceOuterClass.DeleteInstanceRequest.newBuilder()
+                .setInstanceId(instanceId)
+                .build());
+    }
+
     @Extension
     public static final class DescriptorImpl extends Descriptor<YandexTemplate> {
 
+        @NonNull
         @Override
         public String getDisplayName() {
             return "";
         }
 
         @RequirePOST
-        public FormValidation doCheckVmName(@AncestorInPath ItemGroup context, @QueryParameter String value) throws IOException {
+        public FormValidation doCheckVmName(@AncestorInPath ItemGroup context, @QueryParameter String value) {
             Jenkins.get().checkPermission(Jenkins.ADMINISTER);
-            if (value == null || value.isEmpty()){
+            if (value == null || value.isEmpty()) {
                 return FormValidation.error("Empty value");
             }
-            if(Pattern.matches("|[a-z]([-a-z0-9]{0,61}[a-z0-9])?", value)){
+            if (Pattern.matches("|[a-z]([-a-z0-9]{0,61}[a-z0-9])?", value)) {
                 return FormValidation.ok();
             }
             return FormValidation.error("Not valid");
         }
 
         @RequirePOST
-        public FormValidation doCheckInitVMTemplate(@AncestorInPath ItemGroup context, @QueryParameter String value) throws IOException {
+        public FormValidation doCheckInitVMTemplate(@AncestorInPath ItemGroup context, @QueryParameter String value) {
             Jenkins.get().checkPermission(Jenkins.ADMINISTER);
-            if (value == null || value.isEmpty()){
+            if (value == null || value.isEmpty()) {
                 return FormValidation.error("Init VM script empty");
             }
             return FormValidation.ok();

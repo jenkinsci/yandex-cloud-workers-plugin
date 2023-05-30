@@ -6,9 +6,7 @@ import com.cloudbees.plugins.credentials.CredentialsNameComparator;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import hudson.Extension;
-import hudson.model.Hudson;
 import hudson.model.ItemGroup;
-import hudson.model.Job;
 import hudson.model.Label;
 import hudson.model.Queue;
 import hudson.security.ACL;
@@ -64,7 +62,7 @@ public class YandexCloud extends AbstractCloud {
             try {
                 LOGGER.log(Level.INFO, "{0}. Attempting to provision slave needed by excess workload of " + excessWorkload + " units", t);
                 int number = Math.max(excessWorkload / t.getNumExecutors(), 1);
-                final YCAbstractSlave slave = getNewOrExistingAvailableSlave(t, number,false);
+                final YCAbstractSlave slave = getNewOrExistingAvailableSlave(t, number, false);
 
                 if (slave == null) {
                     LOGGER.log(Level.WARNING, "Can't raise nodes for " + t);
@@ -73,7 +71,9 @@ public class YandexCloud extends AbstractCloud {
                 plannedNodes.add(createPlannedNode(t, slave));
                 excessWorkload -= t.getNumExecutors();
                 LOGGER.log(Level.INFO, "{0}. Attempting provision finished, excess workload: " + excessWorkload, t);
-                if (excessWorkload <= 0) break;
+                if (excessWorkload <= 0) {
+                    break;
+                }
             } catch (Exception e) {
                 LOGGER.log(Level.WARNING, t + ". Exception during provisioning", e);
                 Queue.Item item = getItem(label.toString());

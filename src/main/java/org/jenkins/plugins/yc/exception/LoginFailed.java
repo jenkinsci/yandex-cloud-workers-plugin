@@ -1,7 +1,12 @@
 package org.jenkins.plugins.yc.exception;
 
-public class LoginFailed extends RuntimeException{
-    public LoginFailed(String cause){
+public class LoginFailed extends RuntimeException {
+
+    /**
+     * Exception for login errors.
+     * @param cause - message error
+     */
+    public LoginFailed(final String cause) {
         super(cause);
     }
 }

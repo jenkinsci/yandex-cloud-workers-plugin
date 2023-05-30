@@ -9,14 +9,19 @@ import java.util.logging.Logger;
 
 public class CloudUtil {
 
+    private CloudUtil(){
+        throw new IllegalStateException("Utility class");
+    }
+
     private static final Logger LOGGER = Logger.getLogger(CloudUtil.class.getName());
 
-    public static Queue.Item getItem(String label) {
+    public static Queue.Item getItem(final String label) {
         try {
             Job job = null;
 
-            if (label != null)
+            if (label != null) {
                 job = (Job) Hudson.getInstance().getItem(label);
+            }
 
             if (job != null) {
                 Queue.Item item = job.getQueueItem();

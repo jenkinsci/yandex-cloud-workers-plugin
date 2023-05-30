@@ -1,6 +1,7 @@
 package org.jenkins.plugins.yc;
 
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.model.Computer;
 import hudson.model.Descriptor.FormException;
 import hudson.model.Node;
@@ -28,26 +29,26 @@ public abstract class YCAbstractSlave extends Slave {
 
     private static final Logger LOGGER = Logger.getLogger(YCAbstractSlave.class.getName());
 
-    protected String instanceId;
+    private String instanceId;
 
     private final String initScript;
     private final String tmpDir;
     private final String templateDescription;
 
-    private boolean stopOnTerminate;
+    private final boolean stopOnTerminate;
     private final String idleTerminationMinutes;
 
     private boolean isConnected = false;
-    private List<YCTag> tags;
+    private final List<YCTag> tags;
     private final String cloudName;
 
-    /* The last instance data to be fetched for the agent */
+    /* The last instance data to be fetched for the agent. */
     protected transient InstanceOuterClass.Instance lastFetchInstance = null;
 
-    /* The time at which we fetched the last instance data */
+    /* The time at which we fetched the last instance data. */
     protected transient long lastFetchTime;
 
-    /** Terminate was scheduled */
+    /** Terminate was scheduled. */
     protected transient ResettableCountDownLatch terminateScheduled = new ResettableCountDownLatch(1, false);
 
     protected static final long MIN_FETCH_TIME = Long.getLong("hudson.plugins.ec2.EC2AbstractSlave.MIN_FETCH_TIME",
@@ -109,9 +110,6 @@ public abstract class YCAbstractSlave extends Slave {
         return (YandexCloud) Jenkins.get().getCloud(cloudName);
     }
 
-    /**
-     * YC instance ID.
-     */
     public String getInstanceId() {
         return instanceId;
     }
@@ -125,7 +123,10 @@ public abstract class YCAbstractSlave extends Slave {
 
     void stop() {
         try {
-            Api.stopInstance(instanceId, getCloud().getTemplate(templateDescription));
+            YandexTemplate template = getCloud().getTemplate(templateDescription);
+            if (template != null) {
+                template.stopInstance(instanceId);
+            }
             Computer computer = toComputer();
             if (computer != null) {
                 computer.disconnect(null);
@@ -137,7 +138,7 @@ public abstract class YCAbstractSlave extends Slave {
     }
 
     @Override
-    public Node reconfigure(final StaplerRequest req, JSONObject form) throws FormException {
+    public Node reconfigure(@NonNull final StaplerRequest req, JSONObject form) throws FormException {
         if (form == null) {
             return null;
         }
@@ -165,7 +166,6 @@ public abstract class YCAbstractSlave extends Slave {
     }
 
     public long getLaunchTimeoutInMillis() {
-        // this should be fine as long as launchTimeout remains an int type
         return launchTimeout * 1000L;
     }
 
@@ -218,7 +218,7 @@ public abstract class YCAbstractSlave extends Slave {
     }
 
     /**
-     * Called when the agent is connected to Jenkins
+     * Called when the agent is connected to Jenkins.
      */
     public void onConnected() {
         isConnected = true;
@@ -226,10 +226,12 @@ public abstract class YCAbstractSlave extends Slave {
 
     protected boolean isAlive(boolean force) throws Exception {
         fetchLiveInstanceData(force);
-        if (lastFetchInstance == null)
+        if (lastFetchInstance == null) {
             return false;
-        if (lastFetchInstance.getStatus().name().equals("STOPPED"))
+        }
+        if (lastFetchInstance.getStatus().name().equals("STOPPED")) {
             return false;
+        }
         return true;
     }
 
@@ -237,9 +239,9 @@ public abstract class YCAbstractSlave extends Slave {
      * Much of the YC data is beyond our direct control, therefore we need to refresh it from time to time to ensure we
      * reflect the reality of the instances.
      */
-    private void fetchLiveInstanceData(boolean force) throws Exception {
+    private void fetchLiveInstanceData(final boolean force) throws Exception {
         /*
-         * If we've grabbed the data recently, don't bother getting it again unless we are forced
+         * If we've grabbed the data recently, don't bother getting it again unless we are forced.
          */
         long now = System.currentTimeMillis();
         if ((lastFetchTime > 0) && (now - lastFetchTime < MIN_FETCH_TIME) && !force) {
@@ -251,13 +253,18 @@ public abstract class YCAbstractSlave extends Slave {
         }
 
         InstanceOuterClass.Instance i;
-        i = Api.getInstanceResponse(getInstanceId(), getCloud().getTemplate(templateDescription));
+        YandexTemplate template = getCloud().getTemplate(templateDescription);
+        i = null;
+        if (template != null) {
+            i = template.getInstanceResponse(getInstanceId());
+        }
 
 
         lastFetchTime = now;
         lastFetchInstance = i;
-        if (i == null)
+        if (i == null) {
             return;
+        }
         /*
          * Only fetch tags from live instance if tags are set. This check is required to mitigate a race condition
          * when fetchLiveInstanceData() is called before pushLiveInstancedata().
@@ -270,13 +277,9 @@ public abstract class YCAbstractSlave extends Slave {
         }*/
     }
 
-    /*
-     * Used to determine if the agent is On Demand or Spot
-     */
-    abstract public String getYCType();
-
     public static abstract class DescriptorImpl extends SlaveDescriptor {
 
+        @NonNull
         @Override
         public abstract String getDisplayName();
 

@@ -9,11 +9,14 @@ public class YCHostAddressProvider {
     public static String getPrivateIpAddress(YCComputer computer) throws Exception {
         YCAbstractSlave abstractSlave = computer.getNode();
         if(abstractSlave != null && abstractSlave.getInstanceId() != null) {
-            InstanceOuterClass.Instance instance = Api.getInstanceResponse(abstractSlave.getInstanceId(), computer.getSlaveTemplate());
-            if (instance != null) {
-                Optional<InstanceOuterClass.NetworkInterface> networkInterface = instance.getNetworkInterfacesList().stream().findFirst();
-                if(networkInterface.isPresent()) {
-                    return networkInterface.get().getPrimaryV4Address().getOneToOneNat().getAddress();
+            YandexTemplate template = computer.getSlaveTemplate();
+            if(template != null) {
+                InstanceOuterClass.Instance instance = template.getInstanceResponse(abstractSlave.getInstanceId());
+                if (instance != null) {
+                    Optional<InstanceOuterClass.NetworkInterface> networkInterface = instance.getNetworkInterfacesList().stream().findFirst();
+                    if (networkInterface.isPresent()) {
+                        return networkInterface.get().getPrimaryV4Address().getOneToOneNat().getAddress();
+                    }
                 }
             }
         }

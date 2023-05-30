@@ -1,5 +1,6 @@
 package org.jenkins.plugins.yc;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.Computer;
 import hudson.model.Descriptor.FormException;
@@ -33,12 +34,10 @@ public class YCOndemandSlave extends YCAbstractSlave {
     }
 
     /**
-     * Constructor for debugging.
+     * Constructor for debugging
+     * @param instanceId - vm instance id
      */
-
-    @Deprecated
     public YCOndemandSlave(String instanceId) throws FormException, IOException {
-
         this(instanceId, instanceId, "debug", "/tmp/hudson", 1, "debug", new YCUnixComputerLauncher(), Mode.NORMAL, "", "/tmp", Collections.emptyList(), false, null, null, "debug", 0);
     }
 
@@ -60,12 +59,15 @@ public class YCOndemandSlave extends YCAbstractSlave {
                     Computer.threadPoolForRemoting.submit(() -> {
                         try {
                             if (!isAlive(true)) {
-                                LOGGER.log(Level.INFO,"YC instance already terminated: " + getInstanceId());
+                                LOGGER.log(Level.INFO, "YC instance already terminated: " + getInstanceId());
                             } else {
-                                Api.deleteInstanceResponse(getInstanceId(), getCloud().getTemplate(getTemplateDescription()));
+                                YandexTemplate template = getCloud().getTemplate(getTemplateDescription());
+                                if (template != null) {
+                                    template.deleteInstanceResponse(getInstanceId());
+                                }
                             }
                             Jenkins.get().removeNode(this);
-                            LOGGER.log(Level.INFO,"Removed YC instance from jenkins master: " + getInstanceId());
+                            LOGGER.log(Level.INFO, "Removed YC instance from jenkins master: " + getInstanceId());
                         } catch (IOException e) {
                             LOGGER.log(Level.WARNING, "Failed to terminate YC instance: " + getInstanceId(), e);
                         } catch (Exception e) {
@@ -83,14 +85,14 @@ public class YCOndemandSlave extends YCAbstractSlave {
     }
 
     @Override
-    public Node reconfigure(final StaplerRequest req, JSONObject form) throws FormException {
+    public Node reconfigure(@NonNull final StaplerRequest req, JSONObject form) throws FormException {
         if (form == null) {
             return null;
         }
 
         try {
             if (!isAlive(true)) {
-                LOGGER.log(Level.INFO,"YC instance terminated externally: " + getInstanceId());
+                LOGGER.log(Level.INFO, "YC instance terminated externally: " + getInstanceId());
                 try {
                     Jenkins.get().removeNode(this);
                 } catch (IOException ioe) {
@@ -109,14 +111,10 @@ public class YCOndemandSlave extends YCAbstractSlave {
 
     @Extension
     public static final class DescriptorImpl extends YCAbstractSlave.DescriptorImpl {
+        @NonNull
         @Override
         public String getDisplayName() {
             return "OnDemandSlaveYC";
         }
-    }
-
-    @Override
-    public String getYCType() {
-        return "OnDemandSlaveOnDemand";
     }
 }
