@@ -2,32 +2,96 @@
     <p>
         Template for creating a virtual machine. Filled in the following form:
     </p>
-    <p>
-        attribute: 'value'
-    </p>
-    <p>
-        object: {
-    </p>
-    <p style="margin-left: 50px;">
-        attribute: 'value'
-    </p>
-    <p>
-        }
-    </p>
-    <p>
-        map: {
-    </p>
-    <p style="margin-left: 50px;">
-        key: 'key_value'
-    </p>
-    <p style="margin-left: 50px;">
-        value: 'value_value'
-    </p>
-    <p>
-        }
-    </p>
+    <pre>
+attribute: 'value'
+object: {
+    attribute: 'value'
+}
+map: {
+    key: 'key_value'
+    value: 'value_value'
+}
+    </pre>
     <p>
         You can find the names of the fields at the link to the
         <a href="https://cloud.yandex.ru/docs/compute/api-ref/grpc/instance_service">documentation</a>
+    </p>
+    <p>
+        For example:
+    <pre>
+platform_id: 'standard-v3'                  # https://cloud.yandex.com/en/docs/compute/concepts/vm-platforms - one of present platforms
+zone_id: 'ru-central1-b'                    # availability zone
+folder_id: 'b1gjcigme8df0h9dl965'           # id of resource folder - https://cloud.yandex.com/en/docs/resource-manager/concepts/resources-hierarchy
+resources_spec: {
+    memory: 1073741824                      # bytes
+    cores: 2
+    core_fraction: 20                       # in percernts. Depends from selected platform. - https://cloud.yandex.com/en/docs/compute/concepts/performance-levels
+}
+boot_disk_spec: {
+    mode: READ_WRITE
+    disk_spec: {
+        type_id: 'network-hdd'              # https://cloud.yandex.com/en/docs/compute/concepts/disk
+        size: 16106127360                   # bytes
+        image_id: 'fd87ap2ld09bjiotu5v0'    # base image id. Can be found on new virtual machine wizard interface.
+    }
+    auto_delete: true                       # remove disks on vm termination
+}
+network_interface_specs: {
+    subnet_id: 'e2l8m8rsiq7mbsusb9ps'
+    primary_v4_address_spec: {
+      one_to_one_nat_spec: {
+        ip_version: IPV4
+      }
+    }
+  }
+  scheduling_policy: {
+    preemptible: true
+  }
+metadata: {
+    key: 'user-data'                        # Cloud config file format converted to single line. https://cloud.yandex.com/en/docs/compute/concepts/vm-metadata
+    value: '|-\n#cloud-config \nwrite_files: \n- path: /var/lib/cloud/scripts/per-boot/01-run-load-generator.sh \npermissions: 0555 \ncontent: | \n#!/bin/bash \necho "hello world!"\n'
+}
+    </pre>
+    </p>
+    <p>
+        <details>
+            <summary>
+                Full example without comments.
+            </summary>
+        <pre>
+platform_id: 'standard-v3'
+zone_id: 'ru-central1-b'
+folder_id: 'b1gjcigme8df0h9dl965'
+resources_spec: {
+    memory: 1073741824
+    cores: 2
+    core_fraction: 20
+}
+boot_disk_spec: {
+    mode: READ_WRITE
+    disk_spec: {
+        type_id: 'network-hdd'
+        size: 16106127360
+        image_id: 'fd87ap2ld09bjiotu5v0'
+    }
+    auto_delete: true
+}
+network_interface_specs: {
+    subnet_id: 'e2l8m8rsiq7mbsusb9ps'
+    primary_v4_address_spec: {
+      one_to_one_nat_spec: {
+        ip_version: IPV4
+      }
+    }
+  }
+  scheduling_policy: {
+    preemptible: true
+  }
+metadata: {
+    key: 'user-data'
+    value: '|-\n#cloud-config \nwrite_files: \n- path: /var/lib/cloud/scripts/per-boot/01-run-load-generator.sh \npermissions: 0555 \ncontent: | \n#!/bin/bash \necho "hello world!"\n'
+}
+        </pre>
+        </details>
     </p>
 </div>
