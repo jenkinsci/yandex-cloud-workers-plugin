@@ -4,12 +4,12 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>4.54</version>
+        <version>4.65</version>
         <relativePath />
     </parent>
 
-
-    <artifactId>yc</artifactId>
+    <groupId>io.jenkins.plugins</groupId>
+    <artifactId>jenkinsci/yandex-cloud-workers</artifactId>
     <version>${revision}${changelist}</version>
     <packaging>hpi</packaging>
 
@@ -34,7 +34,7 @@
     <properties>
         <revision>1.0.0</revision>
         <changelist>-SNAPSHOT</changelist>
-        <jenkins.version>2.361.4</jenkins.version>
+        <jenkins.version>2.387.3</jenkins.version>
         <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
     </properties>
 
@@ -113,4 +113,11 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 </project>
