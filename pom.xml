@@ -5,6 +5,7 @@
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
         <version>4.65</version>
+        <relativePath/>
     </parent>
 
     <groupId>io.jenkins.plugins</groupId>
@@ -12,14 +13,14 @@
     <version>${revision}${changelist}</version>
     <packaging>hpi</packaging>
 
-
     <name>Yandex Cloud Plugin</name>
     <description>This is a Jenkins plugin to support Yandex cloud</description>
     <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
 
-    <scm>
+    <scm child.scm.connection.inherit.append.path="false" child.scm.developerConnection.inherit.append.path="false"
+         child.scm.url.inherit.append.path="false">
         <connection>scm:git:https://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
-        <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
+        <developerConnection>scm:git:https://github.com/jenkinsci/${project.artifactId}-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
         <tag>${scmTag}</tag>
     </scm>
