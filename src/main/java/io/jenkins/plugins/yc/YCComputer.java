@@ -5,6 +5,7 @@ import hudson.slaves.SlaveComputer;
 import io.jenkins.plugins.yc.util.TimeUtils;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 import yandex.cloud.api.compute.v1.InstanceOuterClass;
 
 public class YCComputer extends SlaveComputer {
@@ -67,6 +68,7 @@ public class YCComputer extends SlaveComputer {
      * When the slave is deleted, terminate the instance.
      */
     @Override
+    @RequirePOST
     public HttpResponse doDoDelete() {
         checkPermission(DELETE);
         YCAbstractSlave node = getNode();
