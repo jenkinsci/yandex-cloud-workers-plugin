@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>4.73</version>
+        <version>4.75</version>
         <relativePath/>
     </parent>
 
@@ -42,7 +42,6 @@
         <revision>1.0.0</revision>
         <changelist>-SNAPSHOT</changelist>
         <jenkins.version>2.387.3</jenkins.version>
-        <grpc.version>1.57.2</grpc.version>
         <bcpkix-jdk15on.version>1.61</bcpkix-jdk15on.version>
         <scmTag>HEAD</scmTag>
     </properties>
@@ -65,7 +64,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.28</version>
+            <version>1.18.30</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -102,7 +101,7 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20230618</version>
+            <version>20231013</version>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
@@ -122,14 +121,14 @@
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
                 <artifactId>bom-2.387.x</artifactId>
-                <version>1836.vfe602c266c05</version>
+                <version>2543.vfb_1a_5fb_9496d</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
             <dependency>
-                <groupId>io.grpc</groupId>
-                <artifactId>grpc-bom</artifactId>
-                <version>${grpc.version}</version>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>31.1-jre</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
