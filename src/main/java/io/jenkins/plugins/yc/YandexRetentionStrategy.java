@@ -7,7 +7,6 @@ import hudson.model.ExecutorListener;
 import hudson.model.Queue;
 import hudson.slaves.RetentionStrategy;
 import jenkins.model.Jenkins;
-import org.antlr.v4.runtime.misc.NotNull;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.time.Clock;
@@ -76,7 +75,7 @@ public class YandexRetentionStrategy extends RetentionStrategy<YCComputer> imple
      * the YC instance is already running
      */
     @Override
-    public void start(@NotNull YCComputer c) {
+    public void start(@NonNull YCComputer c) {
         //Jenkins is in the process of starting up
         if (Jenkins.get().getInitLevel() != InitMilestone.COMPLETED) {
             String state = null;

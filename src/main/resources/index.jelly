@@ -3,4 +3,14 @@
     This plugin integrates Jenkins with
     <a href="https://github.com/yandex-cloud">Yandex Cloud</a>
     an Ubuntu.
+    <br />
+    Contributors: <br />
+    <pre>
+    name: Gerbert Khaustov <br />
+    email: g.khaustov@softwarecats.dev <br />
+    organization: SoftwareCats <br />
+    organizationUrl: https://softwarecats.dev/en <br />
+    role: developer <br />
+    timezone: Russia/Novosibirsk
+    </pre>
 </div>
