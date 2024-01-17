@@ -40,7 +40,7 @@
     <properties>
         <revision>1.0.0</revision>
         <changelist>-SNAPSHOT</changelist>
-        <jenkins.version>2.401.3</jenkins.version>
+        <jenkins.version>2.414.3</jenkins.version>
         <bcpkix-jdk15on.version>1.70</bcpkix-jdk15on.version>
         <scmTag>HEAD</scmTag>
     </properties>
