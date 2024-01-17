@@ -14,7 +14,6 @@
     <packaging>hpi</packaging>
 
     <name>Yandex Cloud Plugin</name>
-    <description>This is a Jenkins plugin to support Yandex cloud</description>
     <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
 
     <scm child.scm.connection.inherit.append.path="false" child.scm.developerConnection.inherit.append.path="false"
@@ -41,7 +40,7 @@
     <properties>
         <revision>1.0.0</revision>
         <changelist>-SNAPSHOT</changelist>
-        <jenkins.version>2.387.3</jenkins.version>
+        <jenkins.version>2.401.3</jenkins.version>
         <bcpkix-jdk15on.version>1.70</bcpkix-jdk15on.version>
         <scmTag>HEAD</scmTag>
     </properties>
@@ -92,21 +91,18 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>plain-credentials</artifactId>
-            <version>143.v1b_df8b_d3b_e48</version>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>trilead-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-            <version>20231013</version>
+            <groupId>io.jenkins.plugins</groupId>
+            <artifactId>json-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>node-iterator-api</artifactId>
-            <version>55.v3b_77d4032326</version>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
@@ -120,8 +116,8 @@
         <dependencies>
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
-                <artifactId>bom-2.387.x</artifactId>
-                <version>2543.vfb_1a_5fb_9496d</version>
+                <artifactId>bom-2.401.x</artifactId>
+                <version>2675.v1515e14da_7a_6</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>

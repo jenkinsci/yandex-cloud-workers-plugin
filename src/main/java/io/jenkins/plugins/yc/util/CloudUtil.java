@@ -1,8 +1,8 @@
 package io.jenkins.plugins.yc.util;
 
-import hudson.model.Hudson;
 import hudson.model.Job;
 import hudson.model.Queue;
+import jenkins.model.Jenkins;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,7 +20,7 @@ public class CloudUtil {
             Job job = null;
 
             if (label != null) {
-                job = (Job) Hudson.getInstance().getItem(label);
+                job = (Job) Jenkins.get().getItem(label);
             }
 
             if (job != null) {
@@ -29,7 +29,7 @@ public class CloudUtil {
                     return item;
                 }
             } else {
-                Queue queue = Hudson.getInstance().getQueue();
+                Queue queue = Jenkins.get().getQueue();
                 Queue.Item[] items = queue.getItems();
                 if (items != null && items.length > 0) {
                     return items[0];
