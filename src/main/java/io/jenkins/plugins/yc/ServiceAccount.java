@@ -8,8 +8,7 @@ import yandex.cloud.sdk.auth.Auth;
 import yandex.cloud.sdk.auth.jwt.ServiceAccountKey;
 import yandex.cloud.sdk.auth.provider.CredentialProvider;
 
-
-@ToString
+@ToString(of = {"serviceAccountId", "createdAt", "alg", "pub"})
 public class ServiceAccount extends BaseStandardCredentials {
 
     private final String createdAt;
