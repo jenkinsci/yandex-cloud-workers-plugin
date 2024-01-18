@@ -13,21 +13,21 @@ import yandex.cloud.sdk.auth.provider.CredentialProvider;
 public class ServiceAccount extends BaseStandardCredentials {
 
     private final String createdAt;
-    private final String keyAlgorithm;
+    private final String alg;
     private final String serviceAccountId;
-    private final String privateKey;
-    private final String publicKey;
+    private final String pk;
+    private final String pub;
 
     public ServiceAccount(@CheckForNull CredentialsScope scope,
                           @CheckForNull String id, @CheckForNull String description,
-                          String createdAt, String keyAlgorithm, String serviceAccountId,
-                          String privateKey, String publicKey) {
+                          String createdAt, String alg, String serviceAccountId,
+                          String pk, String pub) {
         super(scope, id, description);
         this.createdAt = createdAt;
-        this.keyAlgorithm = keyAlgorithm;
+        this.alg = alg;
         this.serviceAccountId = serviceAccountId;
-        this.privateKey = privateKey;
-        this.publicKey = publicKey;
+        this.pk = pk;
+        this.pub = pub;
     }
 
     public CredentialProvider buildCredentialProvider() {
@@ -35,9 +35,9 @@ public class ServiceAccount extends BaseStandardCredentials {
                 .serviceAccountKey(new ServiceAccountKey(this.getId(),
                         serviceAccountId,
                         createdAt,
-                        keyAlgorithm,
-                        publicKey,
-                        privateKey))
+                        alg,
+                        pub,
+                        pk))
                 .build();
     }
 }
