@@ -4,25 +4,20 @@ import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
-import hudson.model.Computer;
-import hudson.model.Descriptor;
-import hudson.model.ItemGroup;
-import hudson.model.Label;
-import hudson.model.Node;
+import hudson.model.*;
 import hudson.security.ACL;
 import hudson.slaves.Cloud;
 import hudson.slaves.NodeProvisioner;
 import hudson.util.FormValidation;
-import jenkins.model.Jenkins;
-import org.apache.commons.lang.StringUtils;
 import io.jenkins.plugins.yc.exception.LoginFailed;
+import jenkins.model.Jenkins;
+import lombok.Getter;
+import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl;
 import org.json.JSONObject;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.verb.POST;
 import yandex.cloud.api.compute.v1.InstanceOuterClass;
-import yandex.cloud.sdk.auth.Auth;
-import yandex.cloud.sdk.auth.jwt.ServiceAccountKey;
 import yandex.cloud.sdk.auth.provider.CredentialProvider;
 
 import java.io.BufferedReader;
@@ -30,12 +25,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
@@ -46,8 +36,11 @@ public abstract class AbstractCloud extends Cloud {
 
     private static final Logger LOGGER = Logger.getLogger(AbstractCloud.class.getName());
     private final List<? extends YandexTemplate> templates;
+    @Getter
     private transient ReentrantLock slaveCountingLock = new ReentrantLock();
+    @Getter
     private final String credentialsId;
+    @Getter
     private final int authSleepMs;
 
     private final int delayForRetry = 10000;
@@ -98,7 +91,9 @@ public abstract class AbstractCloud extends Cloud {
                 LOGGER.log(Level.WARNING, t + ". Exception during provisioning", e);
                 throw e;
             }
-        } finally { slaveCountingLock.unlock(); }
+        } finally {
+            slaveCountingLock.unlock();
+        }
     }
 
     public static abstract class DescriptorImpl extends Descriptor<Cloud> {
@@ -108,11 +103,11 @@ public abstract class AbstractCloud extends Cloud {
             if (StringUtils.isBlank(credentialsId)) {
                 return null;
             }
-            FileCredentialsImpl fileCredentials = (FileCredentialsImpl)CredentialsMatchers.firstOrNull(
-                    CredentialsProvider.lookupCredentials(FileCredentialsImpl.class, Jenkins.get(), ACL.SYSTEM, Collections.EMPTY_LIST),
+            FileCredentialsImpl fileCredentials = CredentialsMatchers.firstOrNull(
+                    CredentialsProvider.lookupCredentialsInItemGroup(FileCredentialsImpl.class, Jenkins.get(), ACL.SYSTEM2),
                     CredentialsMatchers.withId(credentialsId));
-            if(fileCredentials != null){
-                try(BufferedReader reader = new BufferedReader(new InputStreamReader(fileCredentials.getContent(), StandardCharsets.UTF_8))) {
+            if (fileCredentials != null) {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(fileCredentials.getContent(), StandardCharsets.UTF_8))) {
                     StringBuilder responseStrBuilder = new StringBuilder();
                     String inputStr;
                     while ((inputStr = reader.readLine()) != null)
@@ -137,7 +132,7 @@ public abstract class AbstractCloud extends Cloud {
          * Tests the connection settings.
          * <p>
          *
-         * @param credentialsId
+         * @param credentialsId credentials id
          * @return the validation result
          */
         @POST
@@ -148,18 +143,13 @@ public abstract class AbstractCloud extends Cloud {
                 if (serviceAccount == null) {
                     throw new LoginFailed("Failed find serviceAccount");
                 }
-                CredentialProvider provider = Auth.apiKeyBuilder()
-                        .serviceAccountKey(new ServiceAccountKey(serviceAccount.getId(),
-                                serviceAccount.getServiceAccountId(),
-                                serviceAccount.getCreatedAt(),
-                                serviceAccount.getKeyAlgorithm(),
-                                serviceAccount.getPublicKey(),
-                                serviceAccount.getPrivateKey()))
-                        .build();
-                if (provider.get().getToken() == null) {
-                    throw new LoginFailed("Failed to login!");
+
+                try ( CredentialProvider provider = serviceAccount.buildCredentialProvider() ) {
+                    if (provider.get().getToken() == null) {
+                        throw new LoginFailed("Failed to login!");
+                    }
+                    return FormValidation.ok(Messages.YCloud_Success());
                 }
-                return FormValidation.ok(Messages.YCloud_Success());
             } catch (Exception e) {
                 return FormValidation.error(e.getMessage());
             }
@@ -173,9 +163,9 @@ public abstract class AbstractCloud extends Cloud {
                 return FormValidation.error("No ssh credentials selected");
             }
             SSHUserPrivateKey sshCredential = getSshCredential(value);
-            String privateKey = "";
+            String privateKey;
             if (sshCredential != null) {
-                privateKey = sshCredential.getPrivateKey();
+                privateKey = sshCredential.getPrivateKeys().get(0);
             } else {
                 return FormValidation.error("Failed to find credential \"" + value + "\" in store.");
             }
@@ -189,7 +179,7 @@ public abstract class AbstractCloud extends Cloud {
                 if (line.equals("-----END RSA PRIVATE KEY-----")) {
                     hasEnd = true;
                 }
-                if(line.equals("-----BEGIN OPENSSH PRIVATE KEY-----")) {
+                if (line.equals("-----BEGIN OPENSSH PRIVATE KEY-----")) {
                     return FormValidation.error("OPENSSH is a proprietary format. YC Integration requires the keys to be in PEM format");
                 }
             }
@@ -204,12 +194,11 @@ public abstract class AbstractCloud extends Cloud {
         }
     }
 
-    protected Object readResolve() {
+    protected void readResolve() {
         this.slaveCountingLock = new ReentrantLock();
         for (YandexTemplate t : templates) {
             t.parent = this;
         }
-        return this;
     }
 
     @CheckForNull
@@ -217,7 +206,7 @@ public abstract class AbstractCloud extends Cloud {
         if (sshKeysCredentialsId != null) {
             SSHUserPrivateKey privateKeyCredential = getSshCredential(sshKeysCredentialsId);
             if (privateKeyCredential != null) {
-                return new YCPrivateKey(privateKeyCredential.getPrivateKey(), privateKeyCredential.getUsername());
+                return new YCPrivateKey(privateKeyCredential.getPrivateKeys().get(0), privateKeyCredential.getUsername());
             }
         }
         return null;
@@ -226,11 +215,10 @@ public abstract class AbstractCloud extends Cloud {
     @CheckForNull
     private static SSHUserPrivateKey getSshCredential(String id) {
         SSHUserPrivateKey credential = CredentialsMatchers.firstOrNull(
-                CredentialsProvider.lookupCredentials(
+                CredentialsProvider.lookupCredentialsInItemGroup(
                         SSHUserPrivateKey.class,
                         Jenkins.get(),
-                        null,
-                        Collections.emptyList()),
+                        null),
                 CredentialsMatchers.withId(id));
 
         if (credential == null) {
@@ -256,6 +244,7 @@ public abstract class AbstractCloud extends Cloud {
 
     /**
      * Gets list of {@link YandexTemplate} that matches {@link Label}.
+     *
      * @param label - required label
      * @return template collections by label
      */
@@ -321,20 +310,10 @@ public abstract class AbstractCloud extends Cloud {
                 , t.getNumExecutors());
     }
 
-    public ReentrantLock getSlaveCountingLock() {
-        return slaveCountingLock;
-    }
-
-    public String getCredentialsId() {
-        return credentialsId;
-    }
-
+    @SuppressWarnings("unused")
     @CheckForNull
     public String getSshKeysCredentialsId() {
         return sshKeysCredentialsId;
     }
 
-    public int getAuthSleepMs() {
-        return authSleepMs;
-    }
 }

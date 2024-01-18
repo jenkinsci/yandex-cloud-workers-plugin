@@ -3,21 +3,20 @@ package io.jenkins.plugins.yc;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
+import yandex.cloud.sdk.auth.Auth;
+import yandex.cloud.sdk.auth.jwt.ServiceAccountKey;
+import yandex.cloud.sdk.auth.provider.CredentialProvider;
 
 
-@Getter
-@Setter
 @ToString
 public class ServiceAccount extends BaseStandardCredentials {
 
-    private String createdAt;
-    private String keyAlgorithm;
-    private String serviceAccountId;
-    private String privateKey;
-    private String publicKey;
+    private final String createdAt;
+    private final String keyAlgorithm;
+    private final String serviceAccountId;
+    private final String privateKey;
+    private final String publicKey;
 
     public ServiceAccount(@CheckForNull CredentialsScope scope,
                           @CheckForNull String id, @CheckForNull String description,
@@ -29,5 +28,16 @@ public class ServiceAccount extends BaseStandardCredentials {
         this.serviceAccountId = serviceAccountId;
         this.privateKey = privateKey;
         this.publicKey = publicKey;
+    }
+
+    public CredentialProvider buildCredentialProvider() {
+        return Auth.apiKeyBuilder()
+                .serviceAccountKey(new ServiceAccountKey(this.getId(),
+                        serviceAccountId,
+                        createdAt,
+                        keyAlgorithm,
+                        publicKey,
+                        privateKey))
+                .build();
     }
 }

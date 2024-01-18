@@ -4,12 +4,7 @@ import com.google.protobuf.TextFormat;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.Util;
-import hudson.model.Describable;
-import hudson.model.Descriptor;
-import hudson.model.ItemGroup;
-import hudson.model.Label;
-import hudson.model.Node;
-import hudson.model.Saveable;
+import hudson.model.*;
 import hudson.model.labels.LabelAtom;
 import hudson.slaves.NodeProperty;
 import hudson.slaves.NodePropertyDescriptor;
@@ -17,12 +12,13 @@ import hudson.util.DescribableList;
 import hudson.util.FormValidation;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import jenkins.model.Jenkins;
-import jenkins.slaves.iterators.api.NodeIterator;
 import io.jenkins.plugins.yc.exception.LoginFailed;
 import io.jenkins.plugins.yc.exception.YandexClientException;
 import io.jenkins.plugins.yc.util.YCAgentConfig;
 import io.jenkins.plugins.yc.util.YCAgentFactory;
+import jenkins.model.Jenkins;
+import jenkins.slaves.iterators.api.NodeIterator;
+import lombok.Getter;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -33,18 +29,12 @@ import yandex.cloud.api.compute.v1.InstanceServiceOuterClass;
 import yandex.cloud.api.operation.OperationOuterClass;
 import yandex.cloud.sdk.ChannelFactory;
 import yandex.cloud.sdk.ServiceFactory;
-import yandex.cloud.sdk.auth.Auth;
-import yandex.cloud.sdk.auth.jwt.ServiceAccountKey;
 import yandex.cloud.sdk.auth.provider.CredentialProvider;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -54,38 +44,52 @@ public class YandexTemplate implements Describable<YandexTemplate> {
 
     private static final Logger LOGGER = Logger.getLogger(YandexTemplate.class.getName());
 
+    @Getter
     protected transient AbstractCloud parent;
 
+    @Getter
     private final String vmName;
 
+    @Getter
     private final String initVMTemplate;
 
+    @Getter
     private final String description;
 
+    @Getter
     private final Node.Mode mode;
+    @Getter
     private final String labels;
+    @Getter
     private final String initScript;
 
+    @Getter
     private final String idleTerminationMinutes;
 
+    @Getter
     private final int numExecutors;
 
+    @Getter
     private final boolean stopOnTerminate;
 
+    @Getter
     private final String remoteFS;
 
+    @Getter
     private final String tmpDir;
 
     private static final String userData = "#cloud-config%nusers:%n  - name: %s%n    sudo: ['ALL=(ALL) NOPASSWD:ALL']%n    ssh-authorized-keys:%n      - %s";
 
     private final List<YCTag> tags;
 
+    @Getter
     private DescribableList<NodeProperty<?>, NodePropertyDescriptor> nodeProperties;
 
     private transient Set<LabelAtom> labelSet;
 
-    public enum ProvisionOptions { ALLOW_CREATE, FORCE_CREATE }
+    public enum ProvisionOptions {ALLOW_CREATE, FORCE_CREATE}
 
+    @Getter
     private transient CredentialProvider provider;
     private transient InstanceServiceGrpc.InstanceServiceBlockingStub instanceServiceBlockingStub;
 
@@ -110,12 +114,12 @@ public class YandexTemplate implements Describable<YandexTemplate> {
     }
 
     @Override
+    @SuppressWarnings({"unchecked"})
     public Descriptor<YandexTemplate> getDescriptor() {
         return Jenkins.get().getDescriptor(getClass());
     }
 
-
-    protected Object readResolve() {
+    protected void readResolve() {
         Jenkins j = Jenkins.getInstanceOrNull();
         if (j != null) {
             j.checkPermission(Jenkins.ADMINISTER);
@@ -124,20 +128,6 @@ public class YandexTemplate implements Describable<YandexTemplate> {
         if (nodeProperties == null) {
             nodeProperties = new DescribableList<>(Saveable.NOOP);
         }
-
-        return this;
-    }
-
-    public String getVmName() {
-        return vmName;
-    }
-
-    public String getInitVMTemplate() {
-        return initVMTemplate;
-    }
-
-    public Node.Mode getMode() {
-        return mode;
     }
 
     public Set<LabelAtom> getLabelSet() {
@@ -147,55 +137,12 @@ public class YandexTemplate implements Describable<YandexTemplate> {
         return labelSet;
     }
 
+    @SuppressWarnings({"unused"})
     public List<YCTag> getTags() {
         if (null == tags) {
             return null;
         }
         return Collections.unmodifiableList(tags);
-    }
-
-    public AbstractCloud getParent() {
-        return parent;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public String getLabels() {
-        return labels;
-    }
-
-    public String getInitScript() {
-        return initScript;
-    }
-
-    public String getIdleTerminationMinutes() {
-        return idleTerminationMinutes;
-    }
-
-    public int getNumExecutors() {
-        return numExecutors;
-    }
-
-    public boolean isStopOnTerminate() {
-        return stopOnTerminate;
-    }
-
-    public DescribableList<NodeProperty<?>, NodePropertyDescriptor> getNodeProperties() {
-        return nodeProperties;
-    }
-
-    public CredentialProvider getProvider() {
-        return provider;
-    }
-
-    public String getRemoteFS() {
-        return remoteFS;
-    }
-
-    public String getTmpDir() {
-        return tmpDir;
     }
 
     public YCAbstractSlave provision(int number, EnumSet<ProvisionOptions> provisionOptions) throws Exception {
@@ -315,7 +262,7 @@ public class YandexTemplate implements Describable<YandexTemplate> {
         if (j != null) {
             j.checkPermission(Jenkins.ADMINISTER);
         }
-        YCPrivateKey privateKey =  this.getParent().resolvePrivateKey();
+        YCPrivateKey privateKey = this.getParent().resolvePrivateKey();
         if (privateKey == null) {
             throw new YandexClientException("Failed get ssh key");
         }
@@ -335,14 +282,7 @@ public class YandexTemplate implements Describable<YandexTemplate> {
         if (provider == null || provider.get().getExpiresAt().isBefore(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant())) {
             LOGGER.log(Level.WARNING, "Token null or expired. Generate new");
             closeChannel("iam".concat(ChannelFactory.DEFAULT_ENDPOINT));
-            provider = Auth.apiKeyBuilder()
-                    .serviceAccountKey(new ServiceAccountKey(serviceAccount.getId(),
-                            serviceAccount.getServiceAccountId(),
-                            serviceAccount.getCreatedAt(),
-                            serviceAccount.getKeyAlgorithm(),
-                            serviceAccount.getPublicKey(),
-                            serviceAccount.getPrivateKey()))
-                    .build();
+            provider = serviceAccount.buildCredentialProvider();
             if (provider.get().getToken() == null) {
                 throw new LoginFailed("Failed to login!");
             }
@@ -365,6 +305,7 @@ public class YandexTemplate implements Describable<YandexTemplate> {
     }
 
     public void startInstance(String instanceId) throws Exception {
+        //noinspection ResultOfMethodCallIgnored
         this.getInstanceServiceBlockingStub().start(InstanceServiceOuterClass.StartInstanceRequest.newBuilder()
                 .setInstanceId(instanceId)
                 .build());
@@ -372,6 +313,7 @@ public class YandexTemplate implements Describable<YandexTemplate> {
 
 
     public void stopInstance(String instanceId) throws Exception {
+        //noinspection ResultOfMethodCallIgnored
         this.getInstanceServiceBlockingStub().stop(InstanceServiceOuterClass.StopInstanceRequest.newBuilder()
                 .setInstanceId(instanceId)
                 .build());
@@ -392,11 +334,13 @@ public class YandexTemplate implements Describable<YandexTemplate> {
 
 
     public void deleteInstanceResponse(String instanceId) throws Exception {
+        //noinspection ResultOfMethodCallIgnored
         this.getInstanceServiceBlockingStub().delete(InstanceServiceOuterClass.DeleteInstanceRequest.newBuilder()
                 .setInstanceId(instanceId)
                 .build());
     }
 
+    @SuppressWarnings("unused")
     @Extension
     public static final class DescriptorImpl extends Descriptor<YandexTemplate> {
 
