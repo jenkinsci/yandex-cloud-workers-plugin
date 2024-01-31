@@ -112,50 +112,6 @@
                     <artifactId>protobuf-java-util</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-context</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-netty-shaded</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-protobuf</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-protobuf-lite</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-services</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.jsonwebtoken</groupId>
-                    <artifactId>jjwt-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.jsonwebtoken</groupId>
-                    <artifactId>jjwt-impl</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.jsonwebtoken</groupId>
-                    <artifactId>jjwt-jackson</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.perfmark</groupId>
-                    <artifactId>perfmark-api</artifactId>
-                </exclusion>
-                <exclusion>
                     <groupId>javax.annotation</groupId>
                     <artifactId>javax.annotation-api</artifactId>
                 </exclusion>
@@ -204,6 +160,46 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>3.25.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.api.grpc</groupId>
+            <artifactId>proto-google-common-protos</artifactId>
+            <version>2.30.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.protobuf</groupId>
+                    <artifactId>protobuf-java</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.code.findbugs</groupId>
+                    <artifactId>jsr305</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.errorprone</groupId>
+                    <artifactId>error_prone_annotations</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>failureaccess</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>listenablefuture</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.j2objc</groupId>
+                    <artifactId>j2objc-annotations</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-stub</artifactId>
             <version>1.61.0</version>
@@ -223,33 +219,6 @@
                 <exclusion>
                     <groupId>com.google.errorprone</groupId>
                     <artifactId>error_prone_annotations</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-api</artifactId>
-            <version>1.61.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.google.code.findbugs</groupId>
-                    <artifactId>jsr305</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.google.errorprone</groupId>
-                    <artifactId>error_prone_annotations</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>guava</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-context</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -273,18 +242,6 @@
                 <exclusion>
                     <groupId>io.grpc</groupId>
                     <artifactId>grpc-netty-shaded</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-protobuf</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-protobuf-lite</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-services</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>javax.annotation</groupId>
@@ -330,18 +287,6 @@
                     <artifactId>grpc-services</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>io.jsonwebtoken</groupId>
-                    <artifactId>jjwt-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.jsonwebtoken</groupId>
-                    <artifactId>jjwt-impl</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.jsonwebtoken</groupId>
-                    <artifactId>jjwt-jackson</artifactId>
-                </exclusion>
-                <exclusion>
                     <groupId>io.perfmark</groupId>
                     <artifactId>perfmark-api</artifactId>
                 </exclusion>
@@ -356,46 +301,6 @@
                 <exclusion>
                     <groupId>org.bouncycastle</groupId>
                     <artifactId>bcprov-jdk15on</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
-            <version>3.25.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.api.grpc</groupId>
-            <artifactId>proto-google-common-protos</artifactId>
-            <version>2.30.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.google.protobuf</groupId>
-                    <artifactId>protobuf-java</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.google.code.findbugs</groupId>
-                    <artifactId>jsr305</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.google.errorprone</groupId>
-                    <artifactId>error_prone_annotations</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>failureaccess</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>guava</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>listenablefuture</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.google.j2objc</groupId>
-                    <artifactId>j2objc-annotations</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
