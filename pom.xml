@@ -27,14 +27,11 @@
 
     <contributors>
         <contributor>
-            <name>Gerbert Khaustov</name>
-            <email>g.khaustov@softwarecats.dev</email>
             <organization>SoftwareCats</organization>
             <organizationUrl>https://softwarecats.dev/en</organizationUrl>
             <roles>
                 <role>developer</role>
             </roles>
-            <timezone>Russia/Novosibirsk</timezone>
         </contributor>
     </contributors>
 
@@ -43,6 +40,30 @@
         <jenkins.version>2.414.3</jenkins.version>
         <scmTag>HEAD</scmTag>
     </properties>
+
+    <developers>
+        <developer>
+            <id>Th3Ch3shir3Cat</id>
+            <name>Gerbert Khaustov</name>
+            <email>g.khaustov@softwarecats.dev</email>
+        </developer>
+        <developer>
+            <id>demenevai</id>
+            <name>Anton Demenev</name>
+            <email>h33x@softwarecats.dev</email>
+        </developer>
+        <developer>
+            <id>petrovvich</id>
+            <name>Alexander Romanyuk</name>
+            <email>a.romanyuk@softwarecats.dev</email>
+        </developer>
+        <developer>
+            <id>sam-bondarev</id>
+            <name>Sam Bondarev</name>
+            <email>sam@softwarecats.dev</email>
+        </developer>
+    </developers>
+
 
     <repositories>
         <repository>
@@ -75,6 +96,11 @@
             <artifactId>lombok</artifactId>
             <version>1.18.30</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.16.1</version>
         </dependency>
         <dependency>
             <groupId>com.yandex.cloud</groupId>
@@ -264,6 +290,10 @@
             <artifactId>java-sdk-auth</artifactId>
             <version>2.6.4</version>
             <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
                 <exclusion>
                     <groupId>com.yandex.cloud</groupId>
                     <artifactId>java-genproto</artifactId>
