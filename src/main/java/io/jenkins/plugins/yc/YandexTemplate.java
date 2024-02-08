@@ -119,15 +119,15 @@ public class YandexTemplate implements Describable<YandexTemplate> {
         return Jenkins.get().getDescriptor(getClass());
     }
 
-    protected void readResolve() {
+    protected Object readResolve() {
         Jenkins j = Jenkins.getInstanceOrNull();
         if (j != null) {
             j.checkPermission(Jenkins.ADMINISTER);
         }
-
         if (nodeProperties == null) {
             nodeProperties = new DescribableList<>(Saveable.NOOP);
         }
+        return this;
     }
 
     public Set<LabelAtom> getLabelSet() {
