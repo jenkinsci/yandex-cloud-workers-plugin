@@ -119,7 +119,9 @@ public abstract class YCAbstractSlave extends Slave {
         return new YCComputer(this);
     }
 
-    public abstract void terminate();
+    public void terminate() {
+        terminateScheduled = new ResettableCountDownLatch(1, false);
+    }
 
     void stop() {
         try {
@@ -253,13 +255,16 @@ public abstract class YCAbstractSlave extends Slave {
         }
 
         InstanceOuterClass.Instance i;
-        YandexTemplate template = getCloud().getTemplate(templateDescription);
         i = null;
-        if (template != null) {
-            i = template.getInstanceResponse(getInstanceId());
+        try {
+            YandexTemplate template = getCloud().getTemplate(templateDescription);
+
+            if (template != null) {
+                i = template.getInstanceResponse(getInstanceId());
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "YandexTemplate problem catched!", e);
         }
-
-
         lastFetchTime = now;
         lastFetchInstance = i;
         if (i == null) {
