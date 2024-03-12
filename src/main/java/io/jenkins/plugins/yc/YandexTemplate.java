@@ -78,7 +78,7 @@ public class YandexTemplate implements Describable<YandexTemplate> {
     @Getter
     private final String tmpDir;
 
-    private static final String userData = "#cloud-config%nusers:%n  - name: %s%n    sudo: ['ALL=(ALL) NOPASSWD:ALL']%n    ssh-authorized-keys:%n      - %s";
+    private static final String userData = "#cloud-config%nusers:%n  - name: %s%n    sudo: true%n    ssh-authorized-keys:%n      - %s";
 
     private final List<YCTag> tags;
 
