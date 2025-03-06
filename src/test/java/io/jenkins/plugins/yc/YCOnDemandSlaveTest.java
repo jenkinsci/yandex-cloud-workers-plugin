@@ -1,6 +1,9 @@
-package io.jenkins.plugins.yc;
+package io.jenkins.plugins.ycptg;
 
 import hudson.model.Node;
+import io.jenkins.plugins.ycptg.YCOndemandSlave;
+import io.jenkins.plugins.ycptg.YCUnixComputerLauncher;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;

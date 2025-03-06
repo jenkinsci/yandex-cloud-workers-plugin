@@ -1,4 +1,4 @@
-package io.jenkins.plugins.yc;
+package io.jenkins.plugins.ycptg;
 
 import com.google.protobuf.TextFormat;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -12,10 +12,10 @@ import hudson.util.DescribableList;
 import hudson.util.FormValidation;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.jenkins.plugins.yc.exception.LoginFailed;
-import io.jenkins.plugins.yc.exception.YandexClientException;
-import io.jenkins.plugins.yc.util.YCAgentConfig;
-import io.jenkins.plugins.yc.util.YCAgentFactory;
+import io.jenkins.plugins.ycptg.exception.LoginFailed;
+import io.jenkins.plugins.ycptg.exception.YandexClientException;
+import io.jenkins.plugins.ycptg.util.YCAgentConfig;
+import io.jenkins.plugins.ycptg.util.YCAgentFactory;
 import jenkins.model.Jenkins;
 import jenkins.slaves.iterators.api.NodeIterator;
 import lombok.Getter;
@@ -78,7 +78,13 @@ public class YandexTemplate implements Describable<YandexTemplate> {
     @Getter
     private final String tmpDir;
 
-    private static final String userData = "#cloud-config%nusers:%n  - name: %s%n    sudo: ['ALL=(ALL) NOPASSWD:ALL']%n    ssh-authorized-keys:%n      - %s";
+    private static final String userDataTemplate = 
+        "#cloud-config\n" +
+        "users:\n" +
+        "  - name: %s\n" +
+        "    sudo: ['ALL=(ALL) NOPASSWD:ALL']\n" +
+        "    ssh-authorized-keys:\n" +
+        "      - %s\n";
 
     private final List<YCTag> tags;
 
@@ -264,13 +270,23 @@ public class YandexTemplate implements Describable<YandexTemplate> {
         }
         YCPrivateKey privateKey = this.getParent().resolvePrivateKey();
         if (privateKey == null) {
-            throw new YandexClientException("Failed get ssh key");
+            throw new YandexClientException("Failed to get SSH key");
         }
+
+        String userName = privateKey.getUserName();
+        String publicKey = privateKey.getPublic();
+
+        // Логирование имени пользователя и SSH ключа
+        LOGGER.info("Creating VM with user: " + userName);
+        LOGGER.info("Using SSH public key: " + publicKey);
+
         InstanceServiceOuterClass.CreateInstanceRequest.Builder builder = InstanceServiceOuterClass.CreateInstanceRequest.newBuilder();
         TextFormat.merge(this.getInitVMTemplate(), builder);
+        String userData = String.format(userDataTemplate, userName, publicKey);
+        LOGGER.info("userData : " + userData);
         return builder
                 .setName(this.getVmName())
-                .putMetadata("user-data", String.format(userData, privateKey.getUserName(), privateKey.getPublicFingerprint() + "= " + privateKey.getUserName()))
+                .putMetadata("user-data", userData)
                 .build();
     }
 

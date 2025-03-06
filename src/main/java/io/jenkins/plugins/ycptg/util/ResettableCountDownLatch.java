@@ -1,4 +1,4 @@
-package io.jenkins.plugins.yc.util;
+package io.jenkins.plugins.ycptg.util;
 
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;

@@ -1,18 +1,20 @@
-package io.jenkins.plugins.yc;
+package io.jenkins.plugins.ycptg;
 
 import hudson.model.Queue;
 import hudson.model.TaskListener;
 import hudson.slaves.ComputerLauncher;
 import hudson.slaves.OfflineCause;
 import hudson.slaves.SlaveComputer;
+import io.jenkins.plugins.ycptg.Messages;
+
 import org.jvnet.localizer.Localizable;
+
+import static io.jenkins.plugins.ycptg.util.CloudUtil.cancelItem;
+import static io.jenkins.plugins.ycptg.util.CloudUtil.getItem;
 
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static io.jenkins.plugins.yc.util.CloudUtil.cancelItem;
-import static io.jenkins.plugins.yc.util.CloudUtil.getItem;
 
 
 public abstract class YCComputerLauncher extends ComputerLauncher {

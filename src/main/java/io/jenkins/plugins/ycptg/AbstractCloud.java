@@ -1,4 +1,4 @@
-package io.jenkins.plugins.yc;
+package io.jenkins.plugins.ycptg;
 
 import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
@@ -9,7 +9,8 @@ import hudson.security.ACL;
 import hudson.slaves.Cloud;
 import hudson.slaves.NodeProvisioner;
 import hudson.util.FormValidation;
-import io.jenkins.plugins.yc.exception.LoginFailed;
+import io.jenkins.plugins.ycptg.Messages;
+import io.jenkins.plugins.ycptg.exception.LoginFailed;
 import jenkins.model.Jenkins;
 import lombok.Getter;
 import org.apache.commons.lang.StringUtils;

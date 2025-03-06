@@ -1,4 +1,4 @@
-package io.jenkins.plugins.yc;
+package io.jenkins.plugins.ycptg;
 
 import com.trilead.ssh2.Connection;
 import com.trilead.ssh2.HTTPProxyData;
@@ -9,10 +9,10 @@ import hudson.ProxyConfiguration;
 import hudson.Util;
 import hudson.model.TaskListener;
 import hudson.remoting.Channel;
+import io.jenkins.plugins.ycptg.exception.YandexClientException;
 import jenkins.model.Jenkins;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import io.jenkins.plugins.yc.exception.YandexClientException;
 
 import java.io.IOException;
 import java.io.PrintStream;

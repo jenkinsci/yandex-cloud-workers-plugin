@@ -1,8 +1,8 @@
-package io.jenkins.plugins.yc.util;
+package io.jenkins.plugins.ycptg.util;
 
 import hudson.model.Node;
 import hudson.slaves.NodeProperty;
-import io.jenkins.plugins.yc.YCTag;
+import io.jenkins.plugins.ycptg.YCTag;
 import lombok.Getter;
 
 import java.util.List;
