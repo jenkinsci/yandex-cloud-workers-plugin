@@ -1,4 +1,4 @@
-package io.jenkins.plugins.yc;
+package io.jenkins.plugins.ycptg;
 
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;

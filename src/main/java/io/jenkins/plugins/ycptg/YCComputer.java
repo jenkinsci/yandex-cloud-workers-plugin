@@ -1,8 +1,9 @@
-package io.jenkins.plugins.yc;
+package io.jenkins.plugins.ycptg;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import hudson.slaves.SlaveComputer;
-import io.jenkins.plugins.yc.util.TimeUtils;
+import io.jenkins.plugins.ycptg.util.TimeUtils;
+
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.interceptor.RequirePOST;

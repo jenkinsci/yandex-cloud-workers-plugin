@@ -1,4 +1,4 @@
-package io.jenkins.plugins.yc;
+package io.jenkins.plugins.ycptg;
 
 import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
@@ -13,7 +13,7 @@ import hudson.security.ACL;
 import hudson.slaves.NodeProvisioner;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
-import io.jenkins.plugins.yc.util.CloudUtil;
+import io.jenkins.plugins.ycptg.util.CloudUtil;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl;
 import org.kohsuke.stapler.AncestorInPath;

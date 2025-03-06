@@ -1,4 +1,4 @@
-package io.jenkins.plugins.yc.exception;
+package io.jenkins.plugins.ycptg.exception;
 
 public class YandexClientException extends RuntimeException {
 

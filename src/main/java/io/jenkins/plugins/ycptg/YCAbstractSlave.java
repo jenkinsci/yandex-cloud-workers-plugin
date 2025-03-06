@@ -1,4 +1,4 @@
-package io.jenkins.plugins.yc;
+package io.jenkins.plugins.ycptg;
 
 
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -10,10 +10,10 @@ import hudson.slaves.ComputerLauncher;
 import hudson.slaves.NodeProperty;
 import hudson.slaves.RetentionStrategy;
 import hudson.util.Secret;
+import io.jenkins.plugins.ycptg.util.ResettableCountDownLatch;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
-import io.jenkins.plugins.yc.util.ResettableCountDownLatch;
 import org.kohsuke.stapler.StaplerRequest;
 import yandex.cloud.api.compute.v1.InstanceOuterClass;
 

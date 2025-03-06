@@ -1,4 +1,4 @@
-package io.jenkins.plugins.yc.util;
+package io.jenkins.plugins.ycptg.util;
 
 
 import org.bouncycastle.crypto.CryptoException;

@@ -1,7 +1,7 @@
-package io.jenkins.plugins.yc.util;
+package io.jenkins.plugins.ycptg.util;
 
 import hudson.model.Descriptor;
-import io.jenkins.plugins.yc.YCAbstractSlave;
+import io.jenkins.plugins.ycptg.YCAbstractSlave;
 import jenkins.model.Jenkins;
 
 import java.io.IOException;

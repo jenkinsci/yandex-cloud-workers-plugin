@@ -1,7 +1,9 @@
-package io.jenkins.plugins.yc;
+package io.jenkins.plugins.ycptg;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import io.jenkins.plugins.ycptg.YCPrivateKey;
 
 import java.io.IOException;
 import java.security.Security;
@@ -59,8 +61,8 @@ public class PrivateKeyTest {
     }
 
     @Test
-    public void testPublicFingerprint() throws IOException {
+    public void testPublic() throws IOException {
         YCPrivateKey k = getPrivateKey();
-        assertEquals("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDbArzg2mV2zxyiP7YZKjKO/8C0tftE3llzvfCkRRHDLp+9pXNJARotI1zqJ8dmO/IzuaTPuDwlFsu9inQwebKhynVqS7Eotejsdkl+wYmngSb72zttkWTORsx7qUZkBtRYGnAnCCI+rnvRFXlFADvOkJSWzu+vc0x174u7RCuA8LoDGuLh8hFvrxJpsIs37A7TewHty1osb7xMTNTx9UHjxTxxJ94tWukAPUTFY5no3WZOzIK9nK31FVXx87qeN2JY/aIjwQMkgsmhKXpbWH440QjZ5+oLTXo9hXQvLPzjrCb60PkNlyJpwScXccK7FWQp6EHemPx/n2wAeaFju53o1RC/LnNW6ZZw0pXx2HYHimH/M8lEdTSEW5FhDXiClC0mFxNCTJu5I1Ci0SkeH2WMEDKs31uvXpuHS9ymyM/dekNwnbn03iNe1wx5VXzevIGvVe6llnlDm2R5iboyZtl+crtfVdMhws15YI3SWeIuBU8TAz47lND8CzTSJiSZcGc", k.getPublicFingerprint());
+        assertEquals("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDbArzg2mV2zxyiP7YZKjKO/8C0tftE3llzvfCkRRHDLp+9pXNJARotI1zqJ8dmO/IzuaTPuDwlFsu9inQwebKhynVqS7Eotejsdkl+wYmngSb72zttkWTORsx7qUZkBtRYGnAnCCI+rnvRFXlFADvOkJSWzu+vc0x174u7RCuA8LoDGuLh8hFvrxJpsIs37A7TewHty1osb7xMTNTx9UHjxTxxJ94tWukAPUTFY5no3WZOzIK9nK31FVXx87qeN2JY/aIjwQMkgsmhKXpbWH440QjZ5+oLTXo9hXQvLPzjrCb60PkNlyJpwScXccK7FWQp6EHemPx/n2wAeaFju53o1RC/LnNW6ZZw0pXx2HYHimH/M8lEdTSEW5FhDXiClC0mFxNCTJu5I1Ci0SkeH2WMEDKs31uvXpuHS9ymyM/dekNwnbn03iNe1wx5VXzevIGvVe6llnlDm2R5iboyZtl+crtfVdMhws15YI3SWeIuBU8TAz47lND8CzTSJiSZcGc", k.getPublic());
     }
 }

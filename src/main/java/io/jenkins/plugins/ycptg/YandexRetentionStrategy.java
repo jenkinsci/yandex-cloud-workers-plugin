@@ -1,4 +1,4 @@
-package io.jenkins.plugins.yc;
+package io.jenkins.plugins.ycptg;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.init.InitMilestone;

@@ -1,4 +1,4 @@
-package io.jenkins.plugins.yc;
+package io.jenkins.plugins.ycptg;
 
 import yandex.cloud.api.compute.v1.InstanceOuterClass;
 
@@ -15,7 +15,7 @@ public class YCHostAddressProvider {
                 if (instance != null) {
                     Optional<InstanceOuterClass.NetworkInterface> networkInterface = instance.getNetworkInterfacesList().stream().findFirst();
                     if (networkInterface.isPresent()) {
-                        return networkInterface.get().getPrimaryV4Address().getOneToOneNat().getAddress();
+                        return networkInterface.get().getPrimaryV4Address().getAddress();
                     }
                 }
             }
