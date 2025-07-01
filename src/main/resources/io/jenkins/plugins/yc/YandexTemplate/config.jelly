@@ -7,8 +7,10 @@
     </f:entry>
 
     <f:entry title="${%Init vm template}" field="initVMTemplate">
-      <f:textarea />
+      <f:textarea checkMethod="post"/>
     </f:entry>
+
+    <f:validateButton title="${%Test init template}" progress="${%Checking...}" method="checkFormatVmTemplate" with="initVMTemplate" />
 
     <f:entry title="${%Description}" field="description">
       <f:textbox />

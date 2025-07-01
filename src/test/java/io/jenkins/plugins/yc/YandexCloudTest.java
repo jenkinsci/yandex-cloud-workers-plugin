@@ -75,6 +75,66 @@ public class YandexCloudTest {
             "    preemptible: true\n" +
             "  }";
 
+    private final String jsonTemplate = "{\n" +
+            "\"platform_id\": \"standard-v3\",\n" +
+            "\"zone_id\": \"ru-central1-b\",\n" +
+            "\"folder_id\": \"b1gjcigme8df0h9dl965\",\n" +
+            "\"resources_spec\": {\n" +
+            "    \"memory\": \"1073741824\",\n" +
+            "    \"cores\": \"2\",\n" +
+            "    \"core_fraction\": \"20\"\n" +
+            "},\n" +
+            "\"boot_disk_spec\": {\n" +
+            "    \"mode\": \"READ_WRITE\",\n" +
+            "    \"disk_spec\": {\n" +
+            "        \"type_id\": \"network-hdd\",\n" +
+            "        \"size\": \"16106127360\",\n" +
+            "        \"image_id\": \"fd87ap2ld09bjiotu5v0\"\n" +
+            "    },\n" +
+            "    \"auto_delete\": \"true\"\n" +
+            "},\n" +
+            "\"network_interface_specs\": [{\n" +
+            "    \"subnet_id\": \"e2l8m8rsiq7mbsusb9ps\",\n" +
+            "    \"primary_v4_address_spec\": {\n" +
+            "      \"one_to_one_nat_spec\": {\n" +
+            "        \"ip_version\": \"IPV4\"\n" +
+            "      }\n" +
+            "    }\n" +
+            "  }],\n" +
+            "  \"scheduling_policy\": {\n" +
+            "    \"preemptible\": \"true\"\n" +
+            "  },\n" +
+            "\"metadata\": {\n" +
+            "    \"key\": \"user-data\",\n" +
+            "    \"value\": \"|-\\n#cloud-config \\nwrite_files: \\n- path: /var/lib/cloud/scripts/per-boot/01-run-load-generator.sh \\npermissions: 0555 \\ncontent: | \\n#!/bin/bash \\necho \\\"hello world!\\\"\\n\"\n" +
+            "}\n" +
+            "}";
+
+    private final String yamlTemplate = "platform_id: standard-v3\n" +
+            "zone_id: ru-central1-b\n" +
+            "folder_id: b1gjcigme8df0h9dl965\n" +
+            "resources_spec:\n" +
+            "  memory: '1073741824'\n" +
+            "  cores: '2'\n" +
+            "  core_fraction: '20'\n" +
+            "boot_disk_spec:\n" +
+            "  mode: READ_WRITE\n" +
+            "  disk_spec:\n" +
+            "    type_id: network-hdd\n" +
+            "    size: '16106127360'\n" +
+            "    image_id: fd87ap2ld09bjiotu5v0\n" +
+            "  auto_delete: 'true'\n" +
+            "network_interface_specs:\n" +
+            "- subnet_id: e2l8m8rsiq7mbsusb9ps\n" +
+            "  primary_v4_address_spec:\n" +
+            "    one_to_one_nat_spec:\n" +
+            "      ip_version: IPV4\n" +
+            "scheduling_policy:\n" +
+            "  preemptible: 'true'\n" +
+            "metadata:\n" +
+            "  key: user-data\n" +
+            "  value: \"|-\\n#cloud-config \\nwrite_files: \\n- path: /var/lib/cloud/scripts/per-boot/01-run-load-generator.sh\n" +
+            "    \\npermissions: 0555 \\ncontent: | \\n#!/bin/bash \\necho \\\"hello world!\\\"\\n\"";
     private final String privateKey = "-----BEGIN RSA PRIVATE KEY-----\n" +
             "MIIG5AIBAAKCAYEA2wK84Nplds8coj+2GSoyjv/AtLX7RN5Zc73wpEURwy6fvaVz\n" +
             "SQEaLSNc6ifHZjvyM7mkz7g8JRbLvYp0MHmyocp1akuxKLXo7HZJfsGJp4Em+9s7\n" +
@@ -126,7 +186,7 @@ public class YandexCloudTest {
         mockedYandexTemplate = Mockito.spy(mockedCloud.getTemplates().get(0));
         when(mockedYandexTemplate.getParent()).thenReturn(mockedCloud);
         when(mockedCloud.resolvePrivateKey()).thenReturn(new YCPrivateKey(privateKey, "test"));
-        when(mockedYandexTemplate.getInitVMTemplate()).thenReturn(template);
+        when(mockedYandexTemplate.getInitVMTemplate()).thenReturn(yamlTemplate);
         j.jenkins.clouds.add(mockedCloud);
     }
 

@@ -1,5 +1,9 @@
 package io.jenkins.plugins.yc;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.TextFormat;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
@@ -23,6 +27,8 @@ import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.interceptor.RequirePOST;
+import org.kohsuke.stapler.verb.POST;
+import org.springframework.http.codec.protobuf.ProtobufDecoder;
 import yandex.cloud.api.compute.v1.InstanceOuterClass;
 import yandex.cloud.api.compute.v1.InstanceServiceGrpc;
 import yandex.cloud.api.compute.v1.InstanceServiceOuterClass;
@@ -30,6 +36,7 @@ import yandex.cloud.api.operation.OperationOuterClass;
 import yandex.cloud.sdk.ChannelFactory;
 import yandex.cloud.sdk.ServiceFactory;
 import yandex.cloud.sdk.auth.provider.CredentialProvider;
+import com.google.protobuf.util.JsonFormat;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -266,9 +273,7 @@ public class YandexTemplate implements Describable<YandexTemplate> {
         if (privateKey == null) {
             throw new YandexClientException("Failed get ssh key");
         }
-        InstanceServiceOuterClass.CreateInstanceRequest.Builder builder = InstanceServiceOuterClass.CreateInstanceRequest.newBuilder();
-        TextFormat.merge(this.getInitVMTemplate(), builder);
-        return builder
+        return getInitVMTemplateBuilder(this.getInitVMTemplate())
                 .setName(this.getVmName())
                 .putMetadata("user-data", String.format(userData, privateKey.getUserName(), privateKey.getPublicFingerprint() + "= " + privateKey.getUserName()))
                 .build();
@@ -340,6 +345,34 @@ public class YandexTemplate implements Describable<YandexTemplate> {
                 .build());
     }
 
+    private static String convertYamlToJson(String yaml) throws JsonProcessingException {
+        ObjectMapper yamlReader = new ObjectMapper(new YAMLFactory());
+        Object obj = yamlReader.readValue(yaml, Object.class);
+        ObjectMapper jsonWriter = new ObjectMapper();
+        return jsonWriter.writeValueAsString(obj);
+    }
+
+    private static InstanceServiceOuterClass.CreateInstanceRequest.Builder getInitVMTemplateBuilder(String initVmTemplate) throws InvalidProtocolBufferException, JsonProcessingException {
+        InstanceServiceOuterClass.CreateInstanceRequest.Builder builder = InstanceServiceOuterClass.CreateInstanceRequest.newBuilder();
+        try {
+            TextFormat.merge(initVmTemplate, builder);
+            LOGGER.log(Level.INFO, "Protobuf format");
+        }catch (TextFormat.ParseException e){
+            try{
+                JsonFormat.parser().merge(initVmTemplate, builder);
+                LOGGER.log(Level.INFO, "Json format");
+            }catch (InvalidProtocolBufferException ipe){
+                String jsonVm = convertYamlToJson(initVmTemplate);
+                JsonFormat.parser().merge(jsonVm, builder);
+                LOGGER.log(Level.INFO, "Yaml format");
+            }
+        }catch (Exception e){
+            LOGGER.log(Level.WARNING, e.getMessage());
+            throw new YandexClientException("Invalid protobuf format");
+        }
+        return builder;
+    }
+
     @SuppressWarnings("unused")
     @Extension
     public static final class DescriptorImpl extends Descriptor<YandexTemplate> {
@@ -369,6 +402,16 @@ public class YandexTemplate implements Describable<YandexTemplate> {
                 return FormValidation.error("Init VM script empty");
             }
             return FormValidation.ok();
+        }
+
+        @POST
+        public FormValidation doCheckFormatVmTemplate(@AncestorInPath ItemGroup context, @QueryParameter String initVMTemplate) throws InvalidProtocolBufferException, JsonProcessingException {
+            Jenkins.get().checkPermission(Jenkins.ADMINISTER);
+            try {
+                return FormValidation.ok(getInitVMTemplateBuilder(initVMTemplate).toString());
+            }catch (Exception e){
+                return FormValidation.error(e.getMessage());
+            }
         }
     }
 }
