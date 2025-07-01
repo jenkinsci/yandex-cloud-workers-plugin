@@ -11,17 +11,18 @@ import hudson.model.Node;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.io.File;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,14 +32,15 @@ import java.util.UUID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
-public class YandexCloudTest {
+@WithJenkins
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class YandexCloudTest {
 
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
+    private JenkinsRule j;
 
     @Mock
     private YandexTemplate mockedYandexTemplate;
@@ -48,7 +50,7 @@ public class YandexCloudTest {
 
     private final String credId = UUID.randomUUID().toString();
 
-    private String template = "platform_id: 'standard-v3'\n" +
+    private final String template = "platform_id: 'standard-v3'\n" +
             "resources_spec: {\n" +
             "    memory: 1073741824\n" +
             "    cores: 2\n" +
@@ -175,8 +177,12 @@ public class YandexCloudTest {
             "vFGyjltEJ8OI8dFY/p0XpkhvIPcX0j74Has1FLb0e9QiPCyaW+68vQ==\n" +
             "-----END RSA PRIVATE KEY-----\n";
 
-    @Before
-    public void setup(){
+
+
+    @BeforeEach
+    void setUp(JenkinsRule rule) {
+        j = rule;
+
         j.jenkins.clouds.clear();
         List<YandexTemplate> yandexTemplateList = new ArrayList<>();
         yandexTemplateList.add(new YandexTemplate("testVm", "", "descr", Node.Mode.NORMAL, "testLabels",
@@ -191,12 +197,12 @@ public class YandexCloudTest {
     }
 
     @Test
-    public void createVmTest() throws IOException {
+    void createVmTest() throws Exception {
         assertNotNull(mockedYandexTemplate.createVm());
     }
 
     @Test
-    public void testSshCredentials() throws IOException {
+    void testSshCredentials() throws Exception {
         YandexCloud actual = j.jenkins.clouds.get(YandexCloud.class);
         YandexCloud.YandexDescriptor descriptor = (YandexCloud.YandexDescriptor) actual.getDescriptor();
         assertNotNull(descriptor);
@@ -205,7 +211,7 @@ public class YandexCloudTest {
         BasicSSHUserPrivateKey sshKeyCredentials = new BasicSSHUserPrivateKey(CredentialsScope.SYSTEM, "ghi", "key",
                 new BasicSSHUserPrivateKey.DirectEntryPrivateKeySource("somekey"), "", "");
         for (CredentialsStore credentialsStore: CredentialsProvider.lookupStores(j.jenkins)) {
-            if (credentialsStore instanceof  SystemCredentialsProvider.StoreImpl) {
+            if (credentialsStore instanceof SystemCredentialsProvider.StoreImpl) {
                 credentialsStore.addCredentials(Domain.global(), sshKeyCredentials);
             }
         }
@@ -217,7 +223,7 @@ public class YandexCloudTest {
     }
 
     @Test
-    public void testYCCredentials() throws IOException {
+    void testYCCredentials() throws Exception {
         YandexCloud actual = j.jenkins.clouds.get(YandexCloud.class);
         YandexCloud.YandexDescriptor descriptor = (YandexCloud.YandexDescriptor) actual.getDescriptor();
         assertNotNull(descriptor);
