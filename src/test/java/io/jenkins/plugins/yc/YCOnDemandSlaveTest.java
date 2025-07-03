@@ -1,20 +1,27 @@
 package io.jenkins.plugins.yc;
 
 import hudson.model.Node;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 import java.util.Collections;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class YCOnDemandSlaveTest {
-    @Rule
-    public JenkinsRule r = new JenkinsRule();
+@WithJenkins
+class YCOnDemandSlaveTest {
+
+    private JenkinsRule j;
+
+    @BeforeEach
+    void setUp(JenkinsRule rule) {
+        j = rule;
+    }
 
     @Test
-    public void testSpecifyMode() throws Exception {
+    void testSpecifyMode() throws Exception {
         YCOndemandSlave slaveNormal = new YCOndemandSlave("name", "instanceId",
                 "description", "remoteFS",
                 1, "labelString", new YCUnixComputerLauncher(), Node.Mode.NORMAL,
