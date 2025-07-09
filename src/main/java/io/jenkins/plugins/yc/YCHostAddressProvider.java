@@ -15,7 +15,11 @@ public class YCHostAddressProvider {
                 if (instance != null) {
                     Optional<InstanceOuterClass.NetworkInterface> networkInterface = instance.getNetworkInterfacesList().stream().findFirst();
                     if (networkInterface.isPresent()) {
-                        return networkInterface.get().getPrimaryV4Address().getOneToOneNat().getAddress();
+                        String nat_ipaddr = networkInterface.get().getPrimaryV4Address().getOneToOneNat().getAddress();
+                        if (nat_ipaddr != null)
+                            return nat_ipaddr;
+                        else
+                            return networkInterface.get().getPrimaryV4Address().getAddress();
                     }
                 }
             }
