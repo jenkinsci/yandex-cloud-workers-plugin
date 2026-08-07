@@ -12,7 +12,6 @@ import hudson.util.FormValidation;
 import io.jenkins.plugins.yc.exception.LoginFailed;
 import jenkins.model.Jenkins;
 import lombok.Getter;
-import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl;
 import org.json.JSONObject;
 import org.kohsuke.stapler.AncestorInPath;
@@ -31,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import hudson.Util;
 
 public abstract class AbstractCloud extends Cloud {
 
@@ -100,7 +100,7 @@ public abstract class AbstractCloud extends Cloud {
 
         @CheckForNull
         public static ServiceAccount getCredentials(@CheckForNull String credentialsId) throws Exception {
-            if (StringUtils.isBlank(credentialsId)) {
+            if (Util.fixEmptyAndTrim(credentialsId) == null) {
                 return null;
             }
             FileCredentialsImpl fileCredentials = CredentialsMatchers.firstOrNull(

@@ -11,7 +11,6 @@ import hudson.model.TaskListener;
 import hudson.remoting.Channel;
 import jenkins.model.Jenkins;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import io.jenkins.plugins.yc.exception.YandexClientException;
 
 import java.io.IOException;
@@ -199,7 +198,7 @@ public class YCUnixComputerLauncher extends YCComputerLauncher{
                 }
 
                 String host = YCHostAddressProvider.getPrivateIpAddress(computer);
-                if (StringUtils.isBlank(host)) {
+                if (Util.fixEmptyAndTrim(host) == null) {
                     LOGGER.log(Level.WARNING,  "Empty host, your host is most likely waiting for an ip address.");
                     throw new IOException("goto sleep");
                 }
@@ -237,7 +236,7 @@ public class YCUnixComputerLauncher extends YCComputerLauncher{
 
                 // If the computer was set offline because it's not trusted, we avoid persisting in connecting to it.
                 // The computer is offline for a long period
-                if (computer.isOffline() && StringUtils.isNotBlank(computer.getOfflineCauseReason())) {
+                if (computer.isOffline() && Util.fixEmptyAndTrim(computer.getOfflineCauseReason()) != null) {
                     throw new Exception("The connection couldn't be established and the computer is now offline", e);
                 } else {
                     LOGGER.log(Level.INFO, "Waiting for SSH to come up. Sleeping 5.");
