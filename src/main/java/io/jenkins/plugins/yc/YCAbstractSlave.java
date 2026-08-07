@@ -12,7 +12,6 @@ import hudson.slaves.RetentionStrategy;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
-import org.apache.commons.lang.StringUtils;
 import io.jenkins.plugins.yc.util.ResettableCountDownLatch;
 import org.kohsuke.stapler.StaplerRequest;
 import yandex.cloud.api.compute.v1.InstanceOuterClass;
@@ -22,6 +21,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import hudson.Util;
 
 
 @SuppressWarnings("serial")
@@ -248,7 +248,7 @@ public abstract class YCAbstractSlave extends Slave {
             return;
         }
 
-        if (StringUtils.isEmpty(getInstanceId())) {
+        if (Util.fixEmpty(getInstanceId()) == null) {
             return;
         }
 
